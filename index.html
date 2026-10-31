@@ -4952,7 +4952,6 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
  input.addEventListener('focus',begin);
  input.addEventListener('blur',()=>window.setTimeout(()=>{
   document.body.classList.remove('keyboard-open');
-  if(done.hidden!==false)document.body.classList.remove('v67-text-editing');
  },180));
 
  // Rebuild the top actions while preserving existing undo / redo handlers.
