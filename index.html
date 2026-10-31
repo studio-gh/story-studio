@@ -4896,5 +4896,106 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
 }
 </style>
 
+<style id="v67-editorial-touch-handles">
+/* Smaller visual handles with a generous transparent touch target. */
+#create .layer.selected .resize-handle,
+#create .layer.selected .rotate-handle{
+ width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;
+ border-width:2px!important;box-shadow:0 1px 3px rgba(0,0,0,.16)!important;
+}
+#create .layer.selected .resize-handle{right:-8px!important;bottom:-8px!important}
+#create .layer.selected .rotate-handle{top:-24px!important}
+#create .layer.selected .width-handle{
+ width:12px!important;height:26px!important;border-width:1px!important;border-radius:5px!important;
+ box-shadow:0 1px 3px rgba(0,0,0,.14)!important;
+}
+#create .layer.selected .width-handle.left{left:-6px!important}
+#create .layer.selected .width-handle.right{right:-6px!important}
+#create .layer.selected .handle:before,
+#create .layer.selected .width-handle:before{
+ content:"";position:absolute;inset:-10px;
+}
+#create .creation-dock{grid-template-columns:repeat(3,minmax(0,1fr))!important;justify-content:center!important}
+#create .creation-dock button{justify-self:center!important;width:min(100%,132px)!important}
+#create .creation-dock{justify-items:center!important}
+</style>
+<script id="v67-text-editing-and-actions">
+(function(){
+ const field=document.getElementById('textEntryField');
+ const input=document.getElementById('textValue');
+ const dock=document.querySelector('#create .editor-actions');
+ if(!field||!input||!dock)return;
+
+ // Keep the completion action only during active text editing, and keep the canvas visible.
+ let done=document.getElementById('finishTextEditing');
+ if(!done){
+  done=document.createElement('button');
+  done.type='button';done.id='finishTextEditing';done.className='text-edit-done';
+  done.textContent='Concluir edição';
+  field.appendChild(done);
+ }
+ const finish=()=>{
+  input.blur();
+  document.body.classList.remove('keyboard-open');
+  done.hidden=true;
+  if(window.v60SetPanel)window.v60SetPanel(true,'text');
+  if(window.v63SyncEditor)window.v63SyncEditor();
+  window.setTimeout(()=>window.v65ResizePreview?.(),80);
+ };
+ done.onclick=finish;
+ const begin=()=>{
+  done.hidden=false;
+  document.body.classList.add('v67-text-editing');
+  window.v60SetPanel?.(true,'text');
+  window.setTimeout(()=>window.v65ResizePreview?.(),80);
+ };
+ input.addEventListener('focus',begin);
+ input.addEventListener('blur',()=>window.setTimeout(()=>{
+  document.body.classList.remove('keyboard-open');
+  if(done.hidden!==false)document.body.classList.remove('v67-text-editing');
+ },180));
+
+ // Rebuild the top actions while preserving existing undo / redo handlers.
+ if(!document.getElementById('copyPNGTopBtn')){
+  const copy=document.createElement('button');
+  copy.type='button';copy.id='copyPNGTopBtn';copy.className='small-btn';
+  copy.textContent='Copiar PNG';copy.onclick=()=>window.copyPNG?.();
+  const exp=document.getElementById('exportStoryBtn');
+  if(exp)dock.insertBefore(copy,exp);
+ }
+ const sync=()=>{
+  const has=typeof layers!=='undefined'&&layers.length>0;
+  const exp=document.getElementById('exportStoryBtn');
+  const copy=document.getElementById('copyPNGTopBtn');
+  if(exp)exp.disabled=!has;
+  if(copy)copy.disabled=!has;
+  const text=typeof selected==='function'?selected():null;
+  if(text&&text.type==='text'&&document.activeElement===input)done.hidden=false;
+  if(!text||text.type!=='text')done.hidden=true;
+ };
+ const oldRender=window.renderEditor;
+ if(typeof oldRender==='function')window.renderEditor=function(){
+  const r=oldRender.apply(this,arguments);sync();return r;
+ };
+ sync();
+
+ // Bring back background removal in the photo's contextual toolset.
+ const image=document.getElementById('imageControls');
+ const quick=document.getElementById('removeBgBtn')?.closest('.tool-grid');
+ if(image&&quick&&!document.getElementById('v67PhotoBgTools')){
+  const row=document.createElement('div');row.id='v67PhotoBgTools';row.className='tool-grid';
+  const remove=document.createElement('button');
+  remove.type='button';remove.className='tool';remove.textContent='Remover fundo';
+  remove.onclick=()=>window.removeBackground?.();
+  row.appendChild(remove);
+  image.insertBefore(row,image.firstChild.nextSibling);
+ }
+})();
+</script>
+<style id="v67-finish-control-visibility">
+#finishTextEditing[hidden]{display:none!important}
+#finishTextEditing:not([hidden]){display:block!important;width:100%!important;min-height:48px!important;margin-top:12px!important}
+</style>
+
 </body>
 </html>
