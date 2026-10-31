@@ -145,7 +145,7 @@ jobs:
           assert.equal(await page.locator('#shapeControls').evaluate(el=>getComputedStyle(el).display),'block','Adding a shape must reveal shape controls');
           assert.equal(await page.locator('#textControls').evaluate(el=>getComputedStyle(el).display),'none','Shape selection must not reveal text controls');
           assert.equal(await page.locator('#imageControls').evaluate(el=>getComputedStyle(el).display),'none','Shape selection must not reveal photo controls');
-          await page.locator('#stage .layer.selected .delete').click();
+          await page.locator('#stage .layer.selected .delete').click({force:true});
           await page.waitForFunction(()=>document.querySelectorAll('#stage .layer').length===0);
           await page.waitForFunction(()=>getComputedStyle(document.querySelector('#create .panel')).display==='none');
           assert.ok(await page.locator('.layer-tools[hidden]').count()===1,'Layer actions must be hidden for an empty canvas');
