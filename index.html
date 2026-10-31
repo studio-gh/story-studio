@@ -4866,5 +4866,35 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
 #create .workspace .stage-wrap{isolation:isolate!important}
 #create .workspace .stage-wrap #stage .guide{z-index:15!important}
 </style>
+<style id="v66-preview-editing-touch-fix">
+/* V66: the expanded canvas owns its area; editing controls must never overlay it. */
+@media(max-width:799px){
+ #create .workspace{display:flex!important;flex-direction:column!important;gap:12px!important}
+ #create .workspace .stage-wrap{
+  position:relative!important;z-index:1!important;isolation:isolate!important;
+  width:100%!important;min-height:clamp(420px,62svh,660px)!important;
+  height:clamp(420px,62svh,660px)!important;
+  margin:0!important;flex:0 0 auto!important;
+ }
+ #create .workspace .stage-wrap #stage{position:relative!important;z-index:1!important}
+ #create .panel.v63-visible{
+  position:relative!important;z-index:2!important;
+  inset:auto!important;transform:none!important;
+  width:100%!important;height:auto!important;max-height:none!important;
+  margin:0 0 160px!important;overflow:visible!important;
+  border-radius:16px!important;
+ }
+ #create .panel.v63-visible .v63-panel-head{
+  position:sticky!important;top:0!important;z-index:5!important;
+  background:#fffefa!important;border-radius:16px 16px 0 0!important;
+ }
+ #create .layer .delete{z-index:14!important}
+}
+@media(min-width:800px){
+ #create .workspace .stage-wrap{z-index:1!important;isolation:isolate!important}
+ #create .panel.v63-visible{position:relative!important;z-index:2!important;inset:auto!important;transform:none!important}
+}
+</style>
+
 </body>
 </html>
