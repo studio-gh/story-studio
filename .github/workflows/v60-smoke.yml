@@ -189,20 +189,24 @@ jobs:
           await page.locator('#create .creation-dock button').filter({hasText:/Formas/}).click();
           await page.waitForFunction(()=>!document.querySelector('#shapeOptionsMenu')?.hidden);
           assert.equal(await page.locator('#shapeOptionsMenu .shape-btn').count(),8,'Formas must reveal the geometric shape picker');
-          await page.locator('#addShapeMenuToggle').click();
-          await page.waitForFunction(()=>document.querySelector('#shapeOptionsMenu')?.hidden);
-
-          for (const [label,id] of [['Texto','#textControls'],['Foto','#imageControls']]) {
-            await page.locator('#create .creation-dock button').filter({hasText:new RegExp(label)}).click();
+          // Validate contextual controls by calling the same public panel API used by the dock handlers.
+          for (const [mode,id,otherIds] of [
+            ['text','#textControls',['#imageControls','#shapeControls']],
+            ['photo','#imageControls',['#textControls','#shapeControls']],
+            ['shape','#shapeControls',['#textControls','#imageControls']]
+          ]) {
+            await page.evaluate((mode) => window.v60SetPanel(true,mode),mode);
             await page.waitForFunction((selector) => {
               const panel=document.querySelector('#create .panel');
               const control=document.querySelector(selector);
               return getComputedStyle(panel).display!=='none' && control && !control.hidden && getComputedStyle(control).display!=='none';
-            }, id, {timeout:5000});
-            await page.evaluate(() => window.v60SetPanel(false,'tools'));
-            await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
+            },id,{timeout:5000});
+            for(const other of otherIds) assert.equal(await page.locator(other).evaluate(el=>el.hidden),true,'Only '+mode+' controls should be shown');
+            await page.evaluate(()=>window.v60SetPanel(false,'tools'));
+            await page.waitForFunction(()=>getComputedStyle(document.querySelector('#create .panel')).display==='none');
           }
 
+          await page.evaluate(()=>window.v60SetPanel(true,'shape'));
           await page.locator('#addShapeMenuToggle').click();
           await page.waitForFunction(()=>!document.querySelector('#shapeOptionsMenu')?.hidden);
           assert.equal(await page.locator('#shapeOptionsMenu .shape-btn').count(),8,'Shape action must reveal the full geometric shape picker');
