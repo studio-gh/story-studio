@@ -943,7 +943,8 @@ function closeShapeMenu(){
   document.body.classList.toggle('v63-context-photo',kind==='image');
   const showLayers=count>0;
    const requestedMode=window.__v63RequestedPanelMode||'';
-   const showPanel=hasSelection||showLayers||requestedMode==='text'||requestedMode==='photo'||requestedMode==='shape';
+   const creationMode=mobile()&&count===0&&['text','photo','shape'].includes(requestedMode);
+   const showPanel=hasSelection||showLayers||creationMode;
    panel.classList.toggle('v63-visible',showPanel);
    panel.classList.toggle('v63-create-mode',!hasSelection&&count===0&&showPanel);
    panel.classList.toggle('v60-open',showPanel);
@@ -952,12 +953,12 @@ function closeShapeMenu(){
   const title=document.getElementById('v63PanelTitle');
   if(title)title.textContent=kind==='text'?'Editar texto':kind==='shape'?'Editar forma':kind==='image'?'Editar foto':'Camadas';
   if(quick)quick.hidden=true;
-   if(text)text.hidden=!(kind==='text'||(!hasSelection&&count===0&&requestedMode==='text'));
+   if(text)text.hidden=!(kind==='text'||(creationMode&&requestedMode==='text'));
    if(effects)effects.hidden=!(kind==='text'||(!hasSelection&&count===0&&requestedMode==='text'));
   if(presets)presets.hidden=true;
-   if(photo)photo.hidden=!(kind==='image'||(!hasSelection&&count===0&&requestedMode==='photo'));
+   if(photo)photo.hidden=!(kind==='image'||(creationMode&&requestedMode==='photo'));
   if(selection)selection.hidden=!hasSelection;
-   if(shape)shape.hidden=!(kind==='shape'||(!hasSelection&&count===0&&requestedMode==='shape'));
+   if(shape)shape.hidden=!(kind==='shape'||(creationMode&&requestedMode==='shape'));
   if(layersSection)layersSection.hidden=count===0;
   if(!hasSelection&&layersSection)layersSection.hidden=false;
   const exportBtn=document.getElementById('exportStoryBtn');
