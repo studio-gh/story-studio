@@ -954,7 +954,7 @@ function closeShapeMenu(){
   if(title)title.textContent=kind==='text'?'Editar texto':kind==='shape'?'Editar forma':kind==='image'?'Editar foto':'Camadas';
   if(quick)quick.hidden=true;
    if(text)text.hidden=!(kind==='text'||(creationMode&&requestedMode==='text'));
-   if(effects)effects.hidden=!(kind==='text'||(!hasSelection&&count===0&&requestedMode==='text'));
+   if(effects)effects.hidden=!(kind==='text'||(creationMode&&requestedMode==='text'));
   if(presets)presets.hidden=true;
    if(photo)photo.hidden=!(kind==='image'||(creationMode&&requestedMode==='photo'));
   if(selection)selection.hidden=!hasSelection;
