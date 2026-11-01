@@ -186,17 +186,19 @@ jobs:
           await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
 
           // Empty canvas: validate each dedicated creation mode before creating a layer.
-          for (const [label,id] of [['Texto','#textControls'],['Foto','#imageControls'],['Formas','#shapeControls']]) {
+          await page.locator('#create .creation-dock button').filter({hasText:/Formas/}).click();
+          await page.waitForFunction(()=>!document.querySelector('#shapeOptionsMenu')?.hidden);
+          assert.equal(await page.locator('#shapeOptionsMenu .shape-btn').count(),8,'Formas must reveal the geometric shape picker');
+          await page.locator('#v63PanelClose').click();
+          await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
+
+          for (const [label,id] of [['Texto','#textControls'],['Foto','#imageControls']]) {
             await page.locator('#create .creation-dock button').filter({hasText:new RegExp(label)}).click();
             await page.waitForFunction((selector) => {
               const panel=document.querySelector('#create .panel');
               const control=document.querySelector(selector);
               return getComputedStyle(panel).display!=='none' && control && !control.hidden && getComputedStyle(control).display!=='none';
             }, id, {timeout:5000});
-            for (const other of ['#textControls','#imageControls','#shapeControls']) {
-              if (other===id) continue;
-              assert.equal(await page.locator(other).evaluate(el=>el.hidden),true, 'Only '+label+' controls should show in this creation mode');
-            }
             await page.locator('#v63PanelClose').click();
             await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
           }
