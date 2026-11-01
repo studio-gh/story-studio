@@ -965,6 +965,7 @@ function closeShapeMenu(){
   if(exportBtn)exportBtn.disabled=count===0;
   const close=document.getElementById('v63PanelClose');
   if(close)close.textContent=hasSelection?'Concluir':'Fechar';
+   if(close)close.hidden=!showPanel;
   const hint=document.querySelector('#create .v62-empty-canvas-note');
   if(count===0&&!hint){
    const note=document.createElement('div');note.className='v62-empty-canvas-note';note.textContent='Seu Story começa aqui';stage.appendChild(note);
