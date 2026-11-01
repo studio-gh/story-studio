@@ -189,8 +189,8 @@ jobs:
           await page.locator('#create .creation-dock button').filter({hasText:/Formas/}).click();
           await page.waitForFunction(()=>!document.querySelector('#shapeOptionsMenu')?.hidden);
           assert.equal(await page.locator('#shapeOptionsMenu .shape-btn').count(),8,'Formas must reveal the geometric shape picker');
-          await page.locator('#v63PanelClose').click();
-          await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
+          await page.locator('#addShapeMenuToggle').click();
+          await page.waitForFunction(()=>document.querySelector('#shapeOptionsMenu')?.hidden);
 
           for (const [label,id] of [['Texto','#textControls'],['Foto','#imageControls']]) {
             await page.locator('#create .creation-dock button').filter({hasText:new RegExp(label)}).click();
@@ -199,7 +199,7 @@ jobs:
               const control=document.querySelector(selector);
               return getComputedStyle(panel).display!=='none' && control && !control.hidden && getComputedStyle(control).display!=='none';
             }, id, {timeout:5000});
-            await page.locator('#v63PanelClose').click();
+            await page.evaluate(() => window.v60SetPanel(false,'tools'));
             await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
           }
 
