@@ -26,6 +26,24 @@ jobs:
         with:
           node-version: 20
 
+      - name: Verify modular assets and HTML entrypoint
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("index.html").read_text()
+          css = Path("assets/css/story-studio.css").read_text()
+          js = Path("assets/js/story-studio.js").read_text()
+          assert 'assets/css/story-studio.css' in html
+          assert 'assets/js/story-studio.js' in html
+          assert len(re.findall(r'<style\\b', html, re.I)) == 0
+          assert len(re.findall(r'<script\\b(?![^>]*src=)', html, re.I)) == 0
+          for feature in ("startTextEditing", "addShape", "removeBackground", "copyPNG", "exportPNG", "moveLayer", "renderBlob"):
+              assert feature in js, f"Missing runtime feature: {feature}"
+          assert "aspect-ratio" in css
+          print(f"Modular assets OK: HTML={len(html)} chars, CSS={len(css)} chars, JS={len(js)} chars")
+          PY
+
       - name: Install browser test runner
         run: |
           npm init -y
