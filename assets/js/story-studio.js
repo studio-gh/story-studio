@@ -942,20 +942,22 @@ function closeShapeMenu(){
   document.body.classList.toggle('v63-context-shape',kind==='shape');
   document.body.classList.toggle('v63-context-photo',kind==='image');
   const showLayers=count>0;
-  const showPanel=hasSelection||showLayers;
-  panel.classList.toggle('v63-visible',showPanel);
-  panel.classList.toggle('v60-open',showPanel);
-  panel.style.display=showPanel?'block':'none';
+   const requestedMode=window.__v63RequestedPanelMode||'';
+   const showPanel=hasSelection||showLayers||requestedMode==='text'||requestedMode==='photo'||requestedMode==='shape';
+   panel.classList.toggle('v63-visible',showPanel);
+   panel.classList.toggle('v63-create-mode',!hasSelection&&count===0&&showPanel);
+   panel.classList.toggle('v60-open',showPanel);
+   panel.style.display=showPanel?'block':'none';
   panelHead.hidden=!showPanel;
   const title=document.getElementById('v63PanelTitle');
   if(title)title.textContent=kind==='text'?'Editar texto':kind==='shape'?'Editar forma':kind==='image'?'Editar foto':'Camadas';
   if(quick)quick.hidden=true;
-  if(text)text.hidden=kind!=='text';
-  if(effects)effects.hidden=kind!=='text';
+   if(text)text.hidden=!(kind==='text'||(!hasSelection&&count===0&&requestedMode==='text'));
+   if(effects)effects.hidden=!(kind==='text'||(!hasSelection&&count===0&&requestedMode==='text'));
   if(presets)presets.hidden=true;
-  if(photo)photo.hidden=kind!=='image';
+   if(photo)photo.hidden=!(kind==='image'||(!hasSelection&&count===0&&requestedMode==='photo'));
   if(selection)selection.hidden=!hasSelection;
-  if(shape)shape.hidden=kind!=='shape';
+   if(shape)shape.hidden=!(kind==='shape'||(!hasSelection&&count===0&&requestedMode==='shape'));
   if(layersSection)layersSection.hidden=count===0;
   if(!hasSelection&&layersSection)layersSection.hidden=false;
   const exportBtn=document.getElementById('exportStoryBtn');
@@ -966,9 +968,9 @@ function closeShapeMenu(){
   if(count===0&&!hint){
    const note=document.createElement('div');note.className='v62-empty-canvas-note';note.textContent='Seu Story começa aqui';stage.appendChild(note);
   }else if(count>0&&hint)hint.remove();
-  if(!hasSelection&&count===0)panel.classList.remove('v60-open');
+   if(!hasSelection&&count===0&&!requestedMode)panel.classList.remove('v60-open');
  }
- window.v60SetPanel=function(open,mode){sync();};
+  window.v60SetPanel=function(open,mode){window.__v63RequestedPanelMode=open?(mode||'tools'):'';sync();};
  window.v63SyncEditor=sync;
  const originalRender=window.renderEditor;
  if(typeof originalRender==='function'){
