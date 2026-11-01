@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - index.html
+      - assets/**
       - .github/workflows/v60-smoke.yml
   workflow_dispatch:
 
@@ -155,6 +156,35 @@ jobs:
           assert.ok(mobileSurfaceState.stageWidth>300,'Mobile preview must fill the workspace width');
           assert.deepEqual(mobileSurfaceState.dock,['Texto','Foto','Formas'],'Empty canvas must offer only the three clear creation actions');
           assert.ok(mobileSurfaceState.dockRect.left>=0&&mobileSurfaceState.dockRect.right<=390&&mobileSurfaceState.dockRect.width>300,'Creation actions must fit inside the mobile viewport');
+          // The empty canvas must open a focused creation panel for each dock action.
+          await page.locator('#create .creation-dock button').filter({hasText:/Texto/}).click();
+          await page.waitForFunction(() => {
+            const panel=document.querySelector('#create .panel');
+            const text=document.querySelector('#textControls');
+            return getComputedStyle(panel).display!=='none' && !text.hidden && getComputedStyle(text).display!=='none';
+          });
+          assert.equal(await page.locator('#imageControls').evaluate(el=>el.hidden),true,'Photo tools must stay hidden in text creation mode');
+          await page.locator('#v63PanelClose').click();
+          await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
+          await page.locator('#create .creation-dock button').filter({hasText:/Foto/}).click();
+          await page.waitForFunction(() => {
+            const panel=document.querySelector('#create .panel');
+            const photo=document.querySelector('#imageControls');
+            return getComputedStyle(panel).display!=='none' && !photo.hidden && getComputedStyle(photo).display!=='none';
+          });
+          assert.equal(await page.locator('#textControls').evaluate(el=>el.hidden),true,'Text tools must stay hidden in photo creation mode');
+          await page.locator('#v63PanelClose').click();
+          await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
+          await page.locator('#create .creation-dock button').filter({hasText:/Formas/}).click();
+          await page.waitForFunction(() => {
+            const panel=document.querySelector('#create .panel');
+            const shape=document.querySelector('#shapeControls');
+            return getComputedStyle(panel).display!=='none' && !shape.hidden && getComputedStyle(shape).display!=='none';
+          });
+          assert.equal(await page.locator('#imageControls').evaluate(el=>el.hidden),true,'Photo tools must stay hidden in shape creation mode');
+          await page.locator('#v63PanelClose').click();
+          await page.waitForFunction(() => getComputedStyle(document.querySelector('#create .panel')).display==='none');
+
           await page.locator('#addShapeMenuToggle').click();
           await page.waitForFunction(()=>!document.querySelector('#shapeOptionsMenu')?.hidden);
           assert.equal(await page.locator('#shapeOptionsMenu .shape-btn').count(),8,'Shape action must reveal the full geometric shape picker');
