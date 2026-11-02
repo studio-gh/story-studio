@@ -405,10 +405,12 @@ jobs:
             const svg=document.querySelector('#stage .layer svg');
             const path=svg?.querySelector('defs path')?.getAttribute('d')||'';
             const textPath=svg?.querySelector('textPath');
-            return {path,text:textPath?.textContent||'',width:Number(svg?.getAttribute('width')||0),height:Number(svg?.getAttribute('height')||0),arcSelected:document.getElementById('curveArcMode')?.classList.contains('on')};
+            return {path,text:textPath?.textContent||'',textLength:Number(textPath?.getAttribute('textLength')||0),lengthAdjust:textPath?.getAttribute('lengthAdjust')||'',width:Number(svg?.getAttribute('width')||0),height:Number(svg?.getAttribute('height')||0),arcSelected:document.getElementById('curveArcMode')?.classList.contains('on')};
           });
           assert.equal((arcGeometry.path.match(/ A /g)||[]).length,1,'Arc text must use a single open curve rather than a closed circle');
           assert.equal(arcGeometry.text,'Story Studio V61','Arc text must retain the full string');
+          assert.ok(arcGeometry.textLength>0,'Arc text must fit a measured path length so no characters are clipped');
+          assert.equal(arcGeometry.lengthAdjust,'spacingAndGlyphs','Arc text must scale the full string to its available path');
           assert.ok(arcGeometry.width>0&&arcGeometry.height>0,'Arc preview must have a valid SVG artboard');
           assert.equal(arcGeometry.arcSelected,true,'Arc mode must be visibly selected in the controls');
           await page.screenshot({path:'artifacts/v62-mobile-arc-text.png',fullPage:true});
