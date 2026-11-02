@@ -3380,12 +3380,31 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
 
 
 
-/* V67: the editor view must establish its own visible layout after navigation. */
+/* V68: allocate real vertical space to the mobile workspace and live canvas.
+   Earlier editor rules left the workspace and stage wrapper with content-only height,
+   collapsing the canvas to zero despite the active view being visible. */
 @media(max-width:799px){
  #create.view.active{display:block!important;visibility:visible!important;opacity:1!important}
- #create.view.active .workspace{display:flex!important;visibility:visible!important;opacity:1!important}
- #create.view.active .workspace .stage-wrap{display:block!important;visibility:visible!important;opacity:1!important}
- #create.view.active .workspace .stage-wrap #stage{display:block!important;visibility:visible!important;opacity:1!important}
+ #create.view.active .workspace{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  gap:12px!important;width:100%!important;height:auto!important;min-height:0!important;
+  visibility:visible!important;opacity:1!important;overflow:visible!important;
+ }
+ #create.view.active .workspace .stage-wrap{
+  display:flex!important;flex:0 0 auto!important;flex-direction:column!important;
+  align-items:stretch!important;justify-content:flex-start!important;
+  box-sizing:border-box!important;width:100%!important;
+  height:clamp(390px,58svh,650px)!important;
+  min-height:clamp(390px,58svh,650px)!important;max-height:none!important;
+  visibility:visible!important;opacity:1!important;overflow:hidden!important;
+ }
+ #create.view.active .workspace .stage-wrap #stage{
+  display:block!important;flex:1 1 auto!important;
+  width:100%!important;min-width:0!important;max-width:none!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  aspect-ratio:unset!important;visibility:visible!important;opacity:1!important;
+ }
+ #create.view.active .workspace .panel{flex:0 0 auto!important;width:100%!important}
 }
 /* Smaller visual handles with a generous transparent touch target. */
 #create .layer.selected .resize-handle,
