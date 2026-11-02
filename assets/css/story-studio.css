@@ -2619,7 +2619,7 @@ body #create .creation-dock button.dock-primary span{color:#ff9614!important}
     border:0!important;border-bottom:1px solid #e9e6df!important;
     border-radius:16px 16px 0 0!important;background:#fffcf4!important;
   }
-  body #create .panel:not(.v60-open)>.panel-section{display:none!important}
+  body #create .panel:not(.v60-open):not(.v63-visible)>.panel-section{display:none!important}
   body #create .panel.v60-open{transform:none!important;max-height:none!important}
   body #create .panel .panel-section{flex:0 0 auto!important;padding:14px!important}
   body #create .panel .panel-section[hidden]{display:none!important}
