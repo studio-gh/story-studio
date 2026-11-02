@@ -37,6 +37,9 @@ jobs:
           js = Path("assets/js/story-studio.js").read_text()
           assert 'assets/css/story-studio.css' in html
           assert 'assets/js/story-studio.js' in html
+          assert 'viewport-fit=cover' in html, 'Mobile viewport must opt into device safe areas'
+          assert 'env(safe-area-inset-top' in css, 'CSS must account for the top device safe area'
+          assert 'env(safe-area-inset-bottom' in css, 'CSS must account for the bottom device safe area'
           assert len(re.findall(r'<style\\b', html, re.I)) == 0
           assert len(re.findall(r'<script\\b(?![^>]*src=)', html, re.I)) == 0
           for feature in ("startTextEditing", "addShape", "removeBackground", "copyPNG", "exportPNG", "moveLayer", "renderBlob"):
@@ -330,6 +333,7 @@ jobs:
           }));
           console.log('KEYBOARD_LAYOUT_STATE:', JSON.stringify({ ...keyboardState, ...keyboardLayout }));
           assert.equal(keyboardState.keyboardOpen,true,'Keyboard emulation must remain active for the compact layout checks');
+          assert.ok(keyboardState.canvasBottom-keyboardState.canvasTop>=230,'Keyboard preview must remain large enough to read the composition');
           assert.ok(keyboardState.canvasTop >= -2 && keyboardState.canvasBottom < keyboardState.viewport * 0.68, 'Compact layout emulation should keep the canvas in the top region');
           assert.ok(keyboardState.inputTop >= keyboardState.canvasBottom - 1 && keyboardState.inputTop < keyboardState.viewport, 'Text input should remain below the preview and in the visible area');
           assert.ok(keyboardState.panelHeight >= 120, 'Keyboard panel must retain enough height for editing controls');
