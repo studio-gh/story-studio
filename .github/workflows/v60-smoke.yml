@@ -385,6 +385,18 @@ jobs:
           assert.ok(curvePanelState.panelHeight > 120,'Curve editing panel must reserve real space for its controls');
           assert.ok(curvePanelState.curveTop < curvePanelState.viewport,'Curve controls must be visible without scrolling past a blank screen');
           await page.screenshot({ path: 'artifacts/v62-mobile-circular-text.png', fullPage:true });
+          await page.evaluate(() => window.setCurveMode('arc'));
+          const arcGeometry = await page.evaluate(() => {
+            const svg=document.querySelector('#stage .layer svg');
+            const path=svg?.querySelector('defs path')?.getAttribute('d')||'';
+            const textPath=svg?.querySelector('textPath');
+            return {path,text:textPath?.textContent||'',width:Number(svg?.getAttribute('width')||0),height:Number(svg?.getAttribute('height')||0),arcSelected:document.getElementById('curveArcMode')?.classList.contains('on')};
+          });
+          assert.equal((arcGeometry.path.match(/ A /g)||[]).length,1,'Arc text must use a single open curve rather than a closed circle');
+          assert.equal(arcGeometry.text,'Story Studio V61','Arc text must retain the full string');
+          assert.ok(arcGeometry.width>0&&arcGeometry.height>0,'Arc preview must have a valid SVG artboard');
+          assert.equal(arcGeometry.arcSelected,true,'Arc mode must be visibly selected in the controls');
+          await page.screenshot({path:'artifacts/v62-mobile-arc-text.png',fullPage:true});
 
           const exported = await page.evaluate(async () => {
             const blob = await window.renderBlob();
