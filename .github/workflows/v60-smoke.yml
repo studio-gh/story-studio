@@ -425,6 +425,7 @@ jobs:
           assert.equal(orderAfter[orderAfter.length-1], textLayerId, 'The front action must move the selected layer to the top of the visual stack');
           assert.equal(await page.locator('#layers .layer-row').count(), 2, 'Layer rows must remain visible after reordering');
           const moveBack = page.locator('#layers [data-layer-move="'+textLayerId+'"][data-direction="-1"]');
+          await moveBack.waitFor({state:'visible'});
           await moveBack.scrollIntoViewIfNeeded();
           await moveBack.click();
           const orderRestored = await page.evaluate(() => layers.map(layer => layer.id));
