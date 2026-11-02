@@ -201,7 +201,7 @@ jobs:
               selectionVisible:getComputedStyle(document.querySelector('#selectionPanelSection')).display!=='none'&&!document.querySelector('#selectionPanelSection').hidden,
               stageWidth:stage.getBoundingClientRect().width,
               dock,
-              dockRect:{left:dockRect.left,right:dockRect.right,width:dockRect.width},
+              dockRect:{left:dockRect.left,right:dockRect.right,top:dockRect.top,bottom:dockRect.bottom,width:dockRect.width,height:dockRect.height},
               viewport:{width:innerWidth,height:innerHeight}
             };
           });
