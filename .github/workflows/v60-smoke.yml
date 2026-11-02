@@ -185,6 +185,11 @@ jobs:
             const dockStyle = getComputedStyle(dockEl);
             const nav = document.querySelector('nav.bottom');
             const navRect = nav.getBoundingClientRect();
+            const ancestorChain = [];
+            for(let node=dockEl;node;node=node.parentElement){
+              const s=getComputedStyle(node),r=node.getBoundingClientRect();
+              ancestorChain.push({node:node.id?'#'+node.id:node.className||node.tagName,position:s.position,transform:s.transform,animationName:s.animationName,animationDuration:s.animationDuration,willChange:s.willChange,filter:s.filter,backdropFilter:s.backdropFilter,contain:s.contain,perspective:s.perspective,overflow:s.overflow,top:r.top,bottom:r.bottom,height:r.height});
+            }
             return {
               wrapBackground:getComputedStyle(wrap).backgroundColor,
               dockDisplay:dockStyle.display,
@@ -193,6 +198,7 @@ jobs:
               dockPosition:dockStyle.position,
               dockZIndex:Number(dockStyle.zIndex),
               dockPointerEvents:dockStyle.pointerEvents,
+              ancestorChain,
               navTop:navRect.top,
               panelDisplay:getComputedStyle(panel).display,
               panelVisible:getComputedStyle(panel).display!=='none',
