@@ -443,6 +443,30 @@ jobs:
           const shapeLayer = await page.locator('#stage .layer.selected').count();
           assert.equal(shapeLayer, 1, 'The newly created shape must become the selected layer');
 
+          // Regression: moving a shape must use the same 9:16 coordinate scale on both axes,
+          // remain inside the artboard, and never escape over the editor title/menu.
+          const shapeDragBefore = await page.locator('#stage .layer.selected').boundingBox();
+          const stageBounds = await page.locator('#stage').boundingBox();
+          assert.ok(shapeDragBefore && stageBounds, 'Selected shape and artboard must have measurable geometry');
+          await page.mouse.move(shapeDragBefore.x + shapeDragBefore.width/2, shapeDragBefore.y + shapeDragBefore.height/2);
+          await page.mouse.down();
+          await page.mouse.move(stageBounds.x + stageBounds.width - 18, stageBounds.y + stageBounds.height - 24, {steps:12});
+          await page.mouse.up();
+          await page.waitForTimeout(120);
+          const shapeDragAfter = await page.evaluate(() => {
+            const el = document.querySelector('#stage .layer.selected');
+            const stageEl = document.querySelector('#stage');
+            const r = el.getBoundingClientRect(), a = stageEl.getBoundingClientRect();
+            const l = typeof selected === 'function' ? selected() : null;
+            return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,stageLeft:a.left,stageTop:a.top,stageRight:a.right,stageBottom:a.bottom,x:l?.x,y:l?.y,canvasHeight:stageEl.clientHeight,canvasWidth:stageEl.clientWidth};
+          });
+          console.log('SHAPE_DRAG_EDGE_STATE:', JSON.stringify(shapeDragAfter));
+          assert.ok(shapeDragAfter.x >= 0 && shapeDragAfter.x <= 500 && shapeDragAfter.y >= 0 && shapeDragAfter.y <= 500*16/9, 'Shape center coordinates must remain within the 9:16 artboard');
+          assert.ok(shapeDragAfter.top >= shapeDragAfter.stageTop-2 && shapeDragAfter.left >= shapeDragAfter.stageLeft-2, 'Dragged shape must not escape above or left of the canvas');
+          assert.ok(shapeDragAfter.bottom <= shapeDragAfter.stageBottom+2 && shapeDragAfter.right <= shapeDragAfter.stageRight+2, 'Dragged shape must not escape below or right of the canvas');
+          const yUnit = shapeDragAfter.canvasWidth/500;
+          assert.ok(Math.abs((shapeDragAfter.y - (500*16/9/2)) - ((shapeDragAfter.top + (shapeDragAfter.bottom-shapeDragAfter.top)/2) - (shapeDragAfter.stageTop+shapeDragAfter.canvasHeight/2))/yUnit) < 4, 'Vertical gesture must map to the same logical units as horizontal movement');
+
           await page.locator('#v63PanelClose').click();
           await page.waitForFunction(() => document.querySelector('#create .panel').classList.contains('v63-visible'));
           await page.waitForFunction(() => getComputedStyle(document.querySelector('#layersPanelSection')).display !== 'none');
