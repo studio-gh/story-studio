@@ -159,8 +159,27 @@ jobs:
           // Existing end-to-end coverage below exercises text, shapes, photos, selection and export.
           // Keep the empty-canvas assertion focused on the three visible creation actions.
           
+          const editorEntryState = await page.evaluate(() => {
+            const view = document.querySelector('#create');
+            const workspace = view.querySelector('.workspace');
+            const wrap = view.querySelector('.stage-wrap');
+            const stage = view.querySelector('#stage');
+            const details = el => {
+              const style = getComputedStyle(el), rect = el.getBoundingClientRect();
+              return {display:style.display,visibility:style.visibility,opacity:style.opacity,width:rect.width,height:rect.height,hidden:el.hidden};
+            };
+            return {active:view.classList.contains('active'),view:details(view),workspace:details(workspace),wrap:details(wrap),stage:details(stage)};
+          });
+          console.log('EDITOR_ENTRY_STATE:', JSON.stringify(editorEntryState));
+          assert.equal(editorEntryState.active,true,'Create view must become active after choosing Create');
+          assert.notEqual(editorEntryState.view.display,'none','Create view must be displayed after navigation');
+          assert.notEqual(editorEntryState.workspace.display,'none','Editor workspace must be displayed after navigation');
+          assert.notEqual(editorEntryState.wrap.display,'none','Preview wrapper must be displayed on the empty canvas');
+          assert.equal(editorEntryState.wrap.visibility,'visible','Preview wrapper must be visible on the empty canvas');
+          assert.notEqual(editorEntryState.stage.display,'none','Canvas element must be displayed on the empty canvas');
+          assert.equal(editorEntryState.stage.visibility,'visible','Canvas must be visible on the empty canvas');
           const stage = page.locator('#stage');
-          await stage.waitFor({ state: 'visible' });
+          await stage.waitFor({ state: 'visible', timeout: 5000 });
           let rect = await stage.boundingBox();
           assert.ok(rect && rect.width > 100 && rect.height > 170, 'Mobile canvas must be visible and usable');
           assert.ok(Math.abs(rect.height / rect.width - 16 / 9) < 0.03, 'Canvas must keep 9:16 ratio');
