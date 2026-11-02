@@ -2936,6 +2936,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 
 
 
+/* V62.2: keep the editorial ivory canvas consistent on mobile and desktop. */
+html,body,.app,#home{background:#fffcf4!important;color:#2c2c2c!important}
+
 /* V62.1: mobile editing is a two-state workspace, not a tiny preview above a giant form. */
 :root{--bg:#fffcf4!important;--paper:#fffefa!important;--ink:#2c2c2c!important;--muted:#777777!important;--line:#ded8cd!important;--accent:#ff9614!important;--stage:#fffcf4!important;--v60-paper:#fffefa!important;--v60-bg:#fffcf4!important;--v60-ink:#2c2c2c!important;--v60-muted:#777777!important;--v60-line:#ded8cd!important;--v60-accent:#ff9614!important}
 html,body{background:#fffcf4!important;color:#2c2c2c!important}
