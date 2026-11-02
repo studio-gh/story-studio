@@ -370,6 +370,9 @@ jobs:
             return { previewBottom:pr.bottom, canvasTop:cr.top, canvasBottom:cr.bottom, stageRatio:cr.height/cr.width, panelTop:nr.top, panelBottom:nr.bottom, panelHeight:nr.height, panelOpacity:ps.opacity, panelTransform:ps.transform, curveTop:rr.top, curveBottom:rr.bottom, viewport:innerHeight, bodyClasses:document.body.className, selectedLayer:(typeof selected==='function'&&selected())?{type:selected().type,curve:selected().curve,curveMode:selected().curveMode}:null, curveControlsDisplay:getComputedStyle(document.getElementById('curveControls')).display, panelVisible:ps.display!=='none' && ps.visibility!=='hidden' && Number(ps.opacity)>0, curveVisible:getComputedStyle(controls).display!=='none' && rr.height>0 };
           });
           console.log('CURVE_PANEL_LAYOUT_STATE:', JSON.stringify(curvePanelState));
+          assert.ok(curvePanelState.bodyClasses.includes('v62-curve-editing'),'Curve editing mode must be active for curved text');
+          assert.equal(curvePanelState.selectedLayer?.type,'text','Curved text must remain the selected layer');
+          assert.equal(curvePanelState.curveControlsDisplay,'block','Curve controls must remain open for curved text');
           assert.equal(curvePanelState.panelVisible,true,'Curve controls panel must remain visible while editing');
           assert.equal(curvePanelState.curveVisible,true,'Curve controls must be visible after selecting circular text');
           assert.ok(Math.abs(curvePanelState.stageRatio - 16/9) < 0.03,'Circular text preview must preserve the full 9:16 artboard');
