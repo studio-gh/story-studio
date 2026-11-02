@@ -128,6 +128,48 @@ jobs:
           assert.match(await page.locator('#home .hero h1').innerText(), /Faça seu Story/i, 'Second toggle should restore Portuguese');
           await page.locator('.nav-btn[data-view="create"]').click();
           await page.waitForTimeout(350);
+          const editorLanguagePT = await page.evaluate(() => ({
+            lang:document.documentElement.lang,
+            toggle:document.querySelector('#languageToggle')?.textContent.trim(),
+            heading:document.querySelector('#create .editor-head h2')?.textContent.trim(),
+            preview:document.querySelector('#create .live-preview-label')?.textContent.trim(),
+            quickTools:document.querySelector('#create .quick-tool-grid')?.previousElementSibling?.textContent.trim(),
+            paste:document.querySelector('#create .quick-tool-grid button:first-child')?.textContent.trim(),
+            removeBg:document.querySelector('#removeBgBtn')?.textContent.trim(),
+            copy:document.querySelector('#copyStoryBtn')?.textContent.trim(),
+            export:document.querySelector('#exportStoryBtn')?.textContent.trim()
+          }));
+          console.log('EDITOR_LANGUAGE_PT:', JSON.stringify(editorLanguagePT));
+          assert.equal(editorLanguagePT.lang,'pt-BR','Editor must retain Brazilian Portuguese');
+          assert.equal(editorLanguagePT.toggle,'EN','Portuguese editor must offer English');
+          assert.equal(editorLanguagePT.heading,'Crie seu Story.','Editor heading must be translated to Portuguese');
+          assert.equal(editorLanguagePT.preview,'Prévia','Preview label must be translated to Portuguese');
+          assert.equal(editorLanguagePT.quickTools,'Ferramentas rápidas','Quick tools heading must be translated to Portuguese');
+          assert.equal(editorLanguagePT.paste,'Colar imagem','Paste action must be translated to Portuguese');
+          assert.equal(editorLanguagePT.removeBg,'Remover fundo','Background action must be translated to Portuguese');
+          assert.equal(editorLanguagePT.copy,'Copiar PNG','Copy action must be translated to Portuguese');
+          assert.equal(editorLanguagePT.export,'Exportar PNG','Export action must be translated to Portuguese');
+          await languageButton.click();
+          await page.waitForFunction(() => document.documentElement.lang==='en' && document.querySelector('#languageToggle')?.textContent.trim()==='PT-BR');
+          const editorLanguageEN = await page.evaluate(() => ({
+            heading:document.querySelector('#create .editor-head h2')?.textContent.trim(),
+            preview:document.querySelector('#create .live-preview-label')?.textContent.trim(),
+            quickTools:document.querySelector('#create .quick-tool-grid')?.previousElementSibling?.textContent.trim(),
+            paste:document.querySelector('#create .quick-tool-grid button:first-child')?.textContent.trim(),
+            removeBg:document.querySelector('#removeBgBtn')?.textContent.trim(),
+            copy:document.querySelector('#copyStoryBtn')?.textContent.trim(),
+            export:document.querySelector('#exportStoryBtn')?.textContent.trim()
+          }));
+          console.log('EDITOR_LANGUAGE_EN:', JSON.stringify(editorLanguageEN));
+          assert.equal(editorLanguageEN.heading,'Create your Story.','Editor heading must return to English');
+          assert.equal(editorLanguageEN.preview,'Preview','Preview label must return to English');
+          assert.equal(editorLanguageEN.quickTools,'Quick tools','Quick tools heading must return to English');
+          assert.equal(editorLanguageEN.paste,'Paste image','Paste action must return to English');
+          assert.equal(editorLanguageEN.removeBg,'Remove background','Background action must return to English');
+          assert.equal(editorLanguageEN.copy,'Copy PNG','Copy action must return to English');
+          assert.equal(editorLanguageEN.export,'Export PNG','Export action must return to English');
+          await languageButton.click();
+          await page.waitForFunction(() => document.documentElement.lang==='pt-BR' && document.querySelector('#languageToggle')?.textContent.trim()==='EN');
           const mobileSurfaceState = await page.evaluate(() => {
             const wrap = document.querySelector('#create .stage-wrap');
             const stage = document.querySelector('#stage');
@@ -265,8 +307,8 @@ jobs:
           assert.ok(typingPreview.canvasBottom <= typingPreview.inputTop + 10, 'Pinned preview should not overlap text input');
 
           await page.setViewportSize({ width: 390, height: 460 });
+          await page.waitForTimeout(180); // Let viewport listeners settle before applying the keyboard-state emulation.
           await page.evaluate(() => document.body.classList.add('keyboard-open'));
-          await page.waitForTimeout(100);
           const keyboardState = await page.evaluate(() => {
             const canvas = document.querySelector('#stage').getBoundingClientRect();
             const input = document.querySelector('#textValue').getBoundingClientRect();
@@ -275,6 +317,7 @@ jobs:
               canvasTop: canvas.top, canvasBottom: canvas.bottom,
               inputTop: input.top, inputBottom: input.bottom,
               panelTop: panel.top, panelBottom: panel.bottom, panelHeight: panel.height,
+              keyboardOpen:document.body.classList.contains('keyboard-open'),
               viewport: window.innerHeight
             };
           });
@@ -284,6 +327,7 @@ jobs:
             previewTopVariable: getComputedStyle(document.documentElement).getPropertyValue('--keyboard-preview-top')
           }));
           console.log('KEYBOARD_LAYOUT_STATE:', JSON.stringify({ ...keyboardState, ...keyboardLayout }));
+          assert.equal(keyboardState.keyboardOpen,true,'Keyboard emulation must remain active for the compact layout checks');
           assert.ok(keyboardState.canvasTop >= -2 && keyboardState.canvasBottom < keyboardState.viewport * 0.68, 'Compact layout emulation should keep the canvas in the top region');
           assert.ok(keyboardState.inputTop >= keyboardState.canvasBottom - 1 && keyboardState.inputTop < keyboardState.viewport, 'Text input should remain below the preview and in the visible area');
           assert.ok(keyboardState.panelHeight >= 120, 'Keyboard panel must retain enough height for editing controls');
