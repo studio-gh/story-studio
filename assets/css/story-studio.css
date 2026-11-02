@@ -3384,36 +3384,15 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
 
 
 
-/* V66: the expanded canvas owns its area; editing controls must never overlay it. */
+
+/* V67: the editor view must establish its own visible layout after navigation. */
 @media(max-width:799px){
- #create .workspace{display:flex!important;flex-direction:column!important;gap:12px!important}
- #create .workspace .stage-wrap{
-  position:relative!important;z-index:1!important;isolation:isolate!important;
-  width:100%!important;min-height:clamp(420px,62svh,660px)!important;
-  height:clamp(420px,62svh,660px)!important;
-  margin:0!important;flex:0 0 auto!important;
- }
- #create .workspace .stage-wrap #stage{position:relative!important;z-index:1!important}
- #create .panel.v63-visible{
-  position:relative!important;z-index:2!important;
-  inset:auto!important;transform:none!important;
-  width:100%!important;height:auto!important;max-height:none!important;
-  margin:0 0 160px!important;overflow:visible!important;
-  border-radius:16px!important;
- }
- #create .panel.v63-visible .v63-panel-head{
-  position:sticky!important;top:0!important;z-index:5!important;
-  background:#fffefa!important;border-radius:16px 16px 0 0!important;
- }
- #create .layer .delete{z-index:14!important}
+ #create.view.active{display:block!important;visibility:visible!important;opacity:1!important}
+ #create.view.active .workspace,
+ #create.view.active .workspace .stage-wrap,
+ #create.view.active .workspace .stage-wrap #stage{visibility:visible!important;opacity:1!important}
+ #create.view.active .workspace .stage-wrap #stage{display:block!important}
 }
-@media(min-width:800px){
- #create .workspace .stage-wrap{z-index:1!important;isolation:isolate!important}
- #create .panel.v63-visible{position:relative!important;z-index:2!important;inset:auto!important;transform:none!important}
-}
-
-
-
 /* Smaller visual handles with a generous transparent touch target. */
 #create .layer.selected .resize-handle,
 #create .layer.selected .rotate-handle{
