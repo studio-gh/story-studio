@@ -444,7 +444,13 @@ const dict={
 "Shape layer selected.":"Forma selecionada.",
 "Move layer up":"Mover camada para cima",
 "Move layer down":"Mover camada para baixo",
-"Mode":"Modo","Arc":"Arco","Circle":"Círculo","Radius":"Raio","Direction":"Direção","Clockwise":"Sentido horário","Counterclockwise":"Sentido anti-horário",};
+"Mode":"Modo","Arc":"Arco","Circle":"Círculo","Radius":"Raio","Direction":"Direção","Clockwise":"Sentido horário","Counterclockwise":"Sentido anti-horário",
+"Copy PNG":"Copiar PNG",
+"Element settings":"Ajustes do elemento",
+"Your Story starts here":"Seu Story começa aqui",
+"Edit text":"Editar texto",
+"Edit shape":"Editar forma",
+"Edit photo":"Editar foto",};
 let lang="pt";
 const languageVersion="ptbr-default-v1";
 try{
@@ -517,6 +523,12 @@ window.refreshBrandCopy=function(){
   document.title="Story Studio — Make your Story stand out";
  }
 };
+const originalShow=window.show;
+if(typeof originalShow==='function'&&!originalShow.__languageRefresh){
+ const wrappedShow=function(){const result=originalShow.apply(this,arguments);applyLanguage();return result};
+ wrappedShow.__languageRefresh=true;
+ window.show=wrappedShow;
+}
 function init(){
  applyLanguage();
  window.refreshBrandCopy();
