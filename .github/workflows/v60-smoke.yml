@@ -67,6 +67,7 @@ jobs:
           node --input-type=module <<'NODE'
           import { chromium } from 'playwright';
           import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
 
           const browser = await chromium.launch({ headless: true });
           const errors = [];
@@ -74,7 +75,8 @@ jobs:
             viewport: { width: 390, height: 844 },
             deviceScaleFactor: 1,
             isMobile: true,
-            hasTouch: true
+            hasTouch: true,
+            acceptDownloads: true
           });
           const page = await context.newPage();
           page.on('pageerror', error => { errors.push(error.message); console.error('PAGE_ERROR:', error.stack || error.message); });
@@ -365,11 +367,12 @@ jobs:
             const controls = document.querySelector('#curveControls');
             const pr = preview.getBoundingClientRect(), cr = canvas.getBoundingClientRect(), nr = panel.getBoundingClientRect();
             const rr=controls.getBoundingClientRect(),ps=getComputedStyle(panel);
-            return { previewBottom:pr.bottom, canvasBottom:cr.bottom, panelTop:nr.top, panelBottom:nr.bottom, panelHeight:nr.height, panelOpacity:ps.opacity, panelTransform:ps.transform, curveTop:rr.top, curveBottom:rr.bottom, viewport:innerHeight, panelVisible:ps.display!=='none' && ps.visibility!=='hidden' && Number(ps.opacity)>0, curveVisible:getComputedStyle(controls).display!=='none' && rr.height>0 };
+            return { previewBottom:pr.bottom, canvasBottom:cr.bottom, stageRatio:cr.height/cr.width, panelTop:nr.top, panelBottom:nr.bottom, panelHeight:nr.height, panelOpacity:ps.opacity, panelTransform:ps.transform, curveTop:rr.top, curveBottom:rr.bottom, viewport:innerHeight, panelVisible:ps.display!=='none' && ps.visibility!=='hidden' && Number(ps.opacity)>0, curveVisible:getComputedStyle(controls).display!=='none' && rr.height>0 };
           });
           console.log('CURVE_PANEL_LAYOUT_STATE:', JSON.stringify(curvePanelState));
           assert.equal(curvePanelState.panelVisible,true,'Curve controls panel must remain visible while editing');
           assert.equal(curvePanelState.curveVisible,true,'Curve controls must be visible after selecting circular text');
+          assert.ok(Math.abs(curvePanelState.stageRatio - 16/9) < 0.03,'Circular text preview must preserve the full 9:16 artboard');
           assert.ok(curvePanelState.panelTop >= curvePanelState.canvasBottom - 2,'Curve controls must not cover the Story preview');
           assert.ok(curvePanelState.panelTop < curvePanelState.viewport - 100,'Curve editing panel must start inside the visible mobile screen');
           assert.ok(curvePanelState.panelHeight > 120,'Curve editing panel must reserve real space for its controls');
@@ -434,6 +437,17 @@ jobs:
           });
           assert.ok(composite.size > 1000 && composite.width > 0 && composite.height > 0, 'PNG export must include text, shape and imported photo layers');
           await page.screenshot({ path: 'artifacts/v62-mobile-photo-layer.png' });
+          const downloadPromise = page.waitForEvent('download');
+          await page.locator('#exportStoryBtn').click();
+          const download = await downloadPromise;
+          assert.equal(download.suggestedFilename(),'story-studio.png','Export button must download the expected PNG filename');
+          const downloadPath = await download.path();
+          assert.ok(downloadPath,'Export button must produce a real downloadable file');
+          const pngBytes = await readFile(downloadPath);
+          assert.ok(pngBytes.length > 1000,'Downloaded PNG must contain the composite artwork');
+          assert.deepEqual(Array.from(pngBytes.subarray(0,8)),[137,80,78,71,13,10,26,10],'Downloaded file must have a valid PNG signature');
+          await download.saveAs('artifacts/story-studio-export.png');
+          console.log('PNG_DOWNLOAD_STATE:',JSON.stringify({filename:download.suggestedFilename(),bytes:pngBytes.length,signature:Array.from(pngBytes.subarray(0,8))}));
 
           const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
           desktop.on('pageerror', error => errors.push(error.message));
