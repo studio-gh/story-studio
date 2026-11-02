@@ -433,9 +433,7 @@ header{border-color:#383838}
   .bottom{height:calc(66px + env(safe-area-inset-bottom))!important;padding-bottom:env(safe-area-inset-bottom)!important}
   .nav-btn{font-size:11px!important}
   .toast{bottom:calc(76px + env(safe-area-inset-bottom))!important}
-  body:has(#textValue:focus) .stage-wrap,
-  body:has(.field input:focus) .stage-wrap,
-  body:has(.field textarea:focus) .stage-wrap{display:none!important}
+  /* Removed legacy focus rule that hid the live preview during text editing. */
   body:has(#textValue:focus) .editor-head,
   body:has(.field input:focus) .editor-head,
   body:has(.field textarea:focus) .editor-head{display:none!important}
