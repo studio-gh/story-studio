@@ -3471,3 +3471,14 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
   margin:0!important;overflow:visible!important;transform:none!important;z-index:auto!important;
  }
 }
+
+
+/* V69: keep the creation dock available while text is focused but the keyboard is not open. */
+@media(max-width:799px){
+ body:not(.keyboard-open):has(#textValue:focus) #create.view.active .creation-dock{
+  position:fixed!important;left:12px!important;right:12px!important;
+  bottom:calc(72px + env(safe-area-inset-bottom))!important;z-index:1500!important;
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  justify-items:center!important;align-items:center!important;width:auto!important;
+ }
+}
