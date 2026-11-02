@@ -490,6 +490,9 @@ jobs:
           await page.waitForFunction(() => getComputedStyle(document.querySelector('#layersPanelSection')).display !== 'none');
           
           await page.waitForFunction(() => document.querySelector('#create .panel').classList.contains('v63-visible'));
+          // Re-select the shape explicitly before pointer-gesture tests; panel closing may clear selection.
+          await page.locator('#stage .layer.shape-layer').last().click({force:true});
+          await page.waitForFunction(() => document.querySelector('#stage .layer.shape-layer.selected'));
           const layerRowsBefore = await page.locator('#layers .layer-row').count();
           assert.equal(layerRowsBefore, 2, 'Camadas must list every existing layer after deselecting');
           const orderBefore = await page.evaluate(() => layers.map(layer => layer.id));
