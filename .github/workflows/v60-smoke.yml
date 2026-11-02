@@ -166,9 +166,21 @@ jobs:
             const stage = view.querySelector('#stage');
             const details = el => {
               const style = getComputedStyle(el), rect = el.getBoundingClientRect();
-              return {display:style.display,visibility:style.visibility,opacity:style.opacity,width:rect.width,height:rect.height,hidden:el.hidden};
+              const blockers = [];
+              for(let node=el;node&&node!==document.documentElement;node=node.parentElement){
+                const s=getComputedStyle(node),r=node.getBoundingClientRect();
+                if(s.display==='none'||s.visibility==='hidden'||Number(s.opacity)===0||r.width===0||r.height===0){
+                  blockers.push({node:node.id?'#'+node.id:node.className||node.tagName,display:s.display,visibility:s.visibility,opacity:s.opacity,width:r.width,height:r.height});
+                }
+              }
+              return {display:style.display,visibility:style.visibility,opacity:style.opacity,width:rect.width,height:rect.height,hidden:el.hidden,blockers};
             };
-            return {active:view.classList.contains('active'),view:details(view),workspace:details(workspace),wrap:details(wrap),stage:details(stage)};
+            return {
+              active:view.classList.contains('active'),
+              navCreate:[...document.querySelectorAll('.nav-btn')].map(b=>({view:b.dataset.view,active:b.classList.contains('active')})),
+              view:details(view),workspace:details(workspace),wrap:details(wrap),stage:details(stage),
+              bodyClasses:document.body.className,viewport:{width:innerWidth,height:innerHeight}
+            };
           });
           console.log('EDITOR_ENTRY_STATE:', JSON.stringify(editorEntryState));
           assert.equal(editorEntryState.active,true,'Create view must become active after choosing Create');
@@ -179,7 +191,11 @@ jobs:
           assert.notEqual(editorEntryState.stage.display,'none','Canvas element must be displayed on the empty canvas');
           assert.equal(editorEntryState.stage.visibility,'visible','Canvas must be visible on the empty canvas');
           const stage = page.locator('#stage');
-          await stage.waitFor({ state: 'visible', timeout: 5000 });
+          const stageVisible = await stage.evaluate(el => {
+            const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+            return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)>0&&r.width>0&&r.height>0;
+          });
+          assert.equal(stageVisible,true,'Canvas must have visible geometry on editor entry');
           let rect = await stage.boundingBox();
           assert.ok(rect && rect.width > 100 && rect.height > 170, 'Mobile canvas must be visible and usable');
           assert.ok(Math.abs(rect.height / rect.width - 16 / 9) < 0.03, 'Canvas must keep 9:16 ratio');
