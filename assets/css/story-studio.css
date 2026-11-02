@@ -395,13 +395,13 @@ header{border-color:#383838}
     backdrop-filter:none!important;
   }
   /* Keep the editor canvas visible while any editing input has focus. */
+  /* The editor canvas stays visible while inputs are focused. */
   body:has(#textValue:focus) #create .stage-wrap,
   body:has(.field input:focus) #create .stage-wrap,
   body:has(.field textarea:focus) #create .stage-wrap{display:block!important}
   body:has(#textValue:focus) #create .editor-head,
   body:has(.field input:focus) #create .editor-head,
   body:has(.field textarea:focus) #create .editor-head{display:none!important}
-}
 
 
 /* V15 MOBILE-FIRST PRODUCT PASS */
