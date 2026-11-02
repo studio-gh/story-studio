@@ -3404,6 +3404,16 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
   height:100%!important;min-height:0!important;max-height:none!important;
   aspect-ratio:unset!important;visibility:visible!important;opacity:1!important;
  }
+ /* Empty-canvas state gets its own 9:16 artwork area. Compact editor rules
+    are reserved for selected layers and focused text editing. */
+ body.v63-empty #create.view.active .workspace .stage-wrap{
+  height:clamp(390px,58svh,650px)!important;
+  min-height:clamp(390px,58svh,650px)!important;
+ }
+ body.v63-empty #create.view.active .workspace .stage-wrap #stage{
+  flex:1 1 auto!important;height:auto!important;min-height:0!important;
+  aspect-ratio:9/16!important;max-height:none!important;
+ }
  #create.view.active .workspace .panel{flex:0 0 auto!important;width:100%!important}
 }
 /* Smaller visual handles with a generous transparent touch target. */
