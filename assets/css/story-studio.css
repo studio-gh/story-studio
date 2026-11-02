@@ -404,6 +404,9 @@ header{border-color:#383838}
   body:has(.field textarea:focus) #create .editor-head{display:none!important}
 
 
+
+}
+
 /* V15 MOBILE-FIRST PRODUCT PASS */
 @media(max-width:799px){
   :root{--mobile-gutter:12px}
