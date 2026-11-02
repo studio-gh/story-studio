@@ -3385,10 +3385,9 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
 /* V67: the editor view must establish its own visible layout after navigation. */
 @media(max-width:799px){
  #create.view.active{display:block!important;visibility:visible!important;opacity:1!important}
- #create.view.active .workspace,
- #create.view.active .workspace .stage-wrap,
- #create.view.active .workspace .stage-wrap #stage{visibility:visible!important;opacity:1!important}
- #create.view.active .workspace .stage-wrap #stage{display:block!important}
+ #create.view.active .workspace{display:flex!important;visibility:visible!important;opacity:1!important}
+ #create.view.active .workspace .stage-wrap{display:block!important;visibility:visible!important;opacity:1!important}
+ #create.view.active .workspace .stage-wrap #stage{display:block!important;visibility:visible!important;opacity:1!important}
 }
 /* Smaller visual handles with a generous transparent touch target. */
 #create .layer.selected .resize-handle,
