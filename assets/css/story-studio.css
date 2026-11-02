@@ -3323,8 +3323,8 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
  }
  body.keyboard-open #create .workspace .stage-wrap,
  body:has(#textValue:focus) #create .workspace .stage-wrap{
-  height:clamp(210px,31svh,290px)!important;
-  min-height:clamp(210px,31svh,290px)!important;
+  height:clamp(260px,56svh,300px)!important;
+  min-height:clamp(260px,56svh,300px)!important;
  }
 }
 @media(min-width:800px){
