@@ -3401,7 +3401,7 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
  #create.view.active .workspace .stage-wrap #stage{
   display:block!important;flex:1 1 auto!important;
   width:100%!important;min-width:0!important;max-width:none!important;
-  height:auto!important;min-height:0!important;max-height:none!important;
+  height:100%!important;min-height:0!important;max-height:none!important;
   aspect-ratio:unset!important;visibility:visible!important;opacity:1!important;
  }
  #create.view.active .workspace .panel{flex:0 0 auto!important;width:100%!important}
