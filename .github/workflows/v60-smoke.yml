@@ -208,11 +208,13 @@ jobs:
           const expandedPreview = await page.evaluate(() => {
             const stage=document.querySelector('#stage'),layer=stage.querySelector('.layer');
             const sr=stage.getBoundingClientRect(),lr=layer.getBoundingClientRect();
-            return {stageHeight:sr.height,stageWidth:sr.width,layerVisible:lr.width>0&&lr.height>0&&lr.bottom>sr.top&&lr.top<sr.bottom,copyExists:!!document.querySelector('#copyStoryBtn'),dock:document.querySelector('.creation-dock').getBoundingClientRect()};
+            return {stageHeight:sr.height,stageWidth:sr.width,layerVisible:lr.width>0&&lr.height>0&&lr.bottom>sr.top&&lr.top<sr.bottom,copyExists:!!document.querySelector('#copyStoryBtn'),copyActionCount:document.querySelectorAll('#create .editor-actions button[id*="copy"]').length,duplicateCopyAction:!!document.querySelector('#copyPNGTopBtn'),dock:document.querySelector('.creation-dock').getBoundingClientRect()};
           });
-          assert.ok(expandedPreview.stageHeight > 350, 'Expanded mobile preview must use the full workspace height');
+          assert.ok(expandedPreview.stageHeight > 350, 'Focused text editing without an open keyboard must retain a useful 9:16 preview');
           assert.equal(expandedPreview.layerVisible,true,'New text must remain visible inside the expanded preview');
           assert.equal(expandedPreview.copyExists,true,'Copy PNG must be available beside Export PNG');
+          assert.equal(expandedPreview.copyActionCount,1,'The editor must show exactly one Copy PNG action');
+          assert.equal(expandedPreview.duplicateCopyAction,false,'No duplicate Copy PNG action may be injected at runtime');
           assert.ok(Math.abs((expandedPreview.dock.left+expandedPreview.dock.right)/2-195)<3,'Creation actions must be centered in the dock');
 
           rect = await stage.boundingBox();
