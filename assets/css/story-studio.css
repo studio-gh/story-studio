@@ -3442,3 +3442,32 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
 
 #finishTextEditing[hidden]{display:none!important}
 #finishTextEditing:not([hidden]){display:block!important;width:100%!important;min-height:48px!important;margin-top:12px!important}
+
+
+/* V69: distinguish text focus from an actually open virtual keyboard.
+   Keep a useful 9:16 preview while the user edits on a full-height screen;
+   switch to the compact pinned preview only after the viewport reports the keyboard. */
+@media(max-width:799px){
+ body:not(.keyboard-open):has(#textValue:focus) #create.view.active .workspace .stage-wrap{
+  position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;
+  box-sizing:border-box!important;width:100%!important;height:clamp(390px,48svh,430px)!important;
+  min-height:clamp(390px,48svh,430px)!important;max-height:none!important;
+  margin:0!important;padding:8px 12px 10px!important;overflow:hidden!important;
+  border:1px solid #e9e6df!important;border-radius:16px!important;
+  background:#fffcf4!important;box-shadow:none!important;
+ }
+ body:not(.keyboard-open):has(#textValue:focus) #create.view.active .workspace .stage-wrap .live-preview-label{
+  display:block!important;align-self:flex-start!important;margin:0 0 6px!important;color:#77736d!important;
+ }
+ body:not(.keyboard-open):has(#textValue:focus) #create.view.active .workspace #stage{
+  display:block!important;flex:0 0 auto!important;width:auto!important;max-width:none!important;
+  height:min(360px,calc(48svh - 32px))!important;max-height:none!important;
+  aspect-ratio:9/16!important;margin:0 auto!important;
+ }
+ body:not(.keyboard-open):has(#textValue:focus) #create.view.active .workspace .panel{
+  position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+  display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;overflow:visible!important;transform:none!important;z-index:auto!important;
+ }
+}
