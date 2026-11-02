@@ -183,7 +183,7 @@ jobs:
             const dock = [...dockEl.querySelectorAll(':scope > button')].map(b=>b.innerText.trim().split('\n').pop());
             const dockRect = dockEl.getBoundingClientRect();
             const dockStyle = getComputedStyle(dockEl);
-            const nav = document.querySelector('#create nav.bottom');
+            const nav = document.querySelector('nav.bottom');
             const navRect = nav.getBoundingClientRect();
             return {
               wrapBackground:getComputedStyle(wrap).backgroundColor,
