@@ -673,7 +673,6 @@ document.addEventListener('pointercancel',finishEraseStroke,{capture:true});
   if(!input)return;
   function keepPreviewAndField(){
     if(document.activeElement!==input)return;
-    document.body.classList.add('keyboard-open');
     const field=document.getElementById('textEntryField');
     if(field){
       requestAnimationFrame(()=>{
@@ -772,7 +771,6 @@ function closeShapeMenu(){
   if(!mobile())return;
   if(e.target&&e.target.id==='textValue'){
    window.v60SetPanel(true,'text');
-   document.body.classList.add('keyboard-open');
   }
  });
  document.addEventListener('focusout',e=>{
@@ -844,7 +842,7 @@ function closeShapeMenu(){
   const open=document.activeElement===input&&!!vv&&(vv.height<window.innerHeight*.82||window.innerHeight-vv.height>120);
   document.body.classList.toggle('keyboard-open',open);
  };
- input.addEventListener('focus',()=>{document.body.classList.add('keyboard-open');if(window.v60SetPanel)window.v60SetPanel(true,'text');setTimeout(sync,100)});
+ input.addEventListener('focus',()=>{if(window.v60SetPanel)window.v60SetPanel(true,'text');sync();setTimeout(sync,100)});
  input.addEventListener('blur',()=>setTimeout(()=>{document.body.classList.remove('keyboard-open');if(window.v60SetPanel)window.v60SetPanel(true,'text');},160));
  if(window.visualViewport){window.visualViewport.addEventListener('resize',sync);window.visualViewport.addEventListener('scroll',sync)}
  window.addEventListener('resize',sync);
@@ -1234,18 +1232,11 @@ function closeShapeMenu(){
   document.body.classList.remove('keyboard-open');
  },180));
 
- // Rebuild the top actions while preserving existing undo / redo handlers.
- if(!document.getElementById('copyPNGTopBtn')){
-  const copy=document.createElement('button');
-  copy.type='button';copy.id='copyPNGTopBtn';copy.className='small-btn';
-  copy.textContent='Copiar PNG';copy.onclick=()=>window.copyPNG?.();
-  const exp=document.getElementById('exportStoryBtn');
-  if(exp)dock.insertBefore(copy,exp);
- }
+ // Keep the single copy action defined in the HTML; do not inject a duplicate.
  const sync=()=>{
   const has=typeof layers!=='undefined'&&layers.length>0;
   const exp=document.getElementById('exportStoryBtn');
-  const copy=document.getElementById('copyPNGTopBtn');
+  const copy=document.getElementById('copyStoryBtn');
   if(exp)exp.disabled=!has;
   if(copy)copy.disabled=!has;
   const text=typeof selected==='function'?selected():null;
