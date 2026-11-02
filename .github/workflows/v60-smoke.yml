@@ -470,7 +470,12 @@ jobs:
           await moveBack.click();
           const orderRestored = await page.evaluate(() => layers.map(layer => layer.id));
           assert.equal(orderRestored[0], textLayerId, 'The back action must restore the layer to the bottom of the visual stack');
-          await page.locator('#layers .layer-row').first().locator('[data-layer-select].layer-thumb').click();
+          await page.locator('#v63PanelClose').click();
+          await page.waitForFunction(() => document.querySelector('#create .panel').classList.contains('v63-visible'));
+          await page.locator('#layersPanelSection').scrollIntoViewIfNeeded();
+          const frontLayerThumb = page.locator('#layers .layer-row').first().locator('[data-layer-select].layer-thumb');
+          await frontLayerThumb.scrollIntoViewIfNeeded();
+          await frontLayerThumb.click();
 
 
           await page.evaluate(async () => {
