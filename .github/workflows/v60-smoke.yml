@@ -446,11 +446,15 @@ jobs:
           // Select the shape through the canvas itself. The V63 "Concluir" action intentionally
           // clears selectedId, so programmatic state resets are not representative of user flow.
           await page.locator('#stage .layer.shape-layer').last().click({force:true});
-          await page.waitForFunction(() => {
+          const shapeReady = await page.evaluate(() => {
             const el=document.querySelector('#stage .layer.shape-layer.selected');
-            const r=document.querySelector('#stage')?.getBoundingClientRect();
-            return !!el && !!r && r.width>100 && r.height>180 && r.bottom>r.top;
+            const stage=document.querySelector('#stage');
+            const er=el?.getBoundingClientRect(), sr=stage?.getBoundingClientRect();
+            return {selected:!!el,shapeWidth:er?.width||0,shapeHeight:er?.height||0,stageWidth:sr?.width||0,stageHeight:sr?.height||0};
           });
+          console.log('SHAPE_READY_STATE:',JSON.stringify(shapeReady));
+          assert.ok(shapeReady.selected && shapeReady.shapeWidth>20 && shapeReady.shapeHeight>20 && shapeReady.stageWidth>100 && shapeReady.stageHeight>180,
+            'Shape must be selected and canvas geometry measurable before pointer gesture');
           // Keep shape gesture coverage independent from text-panel/layer-management state.
           await page.locator('#stage .layer.shape-layer').last().click({force:true});
           await page.waitForFunction(() => document.querySelector('#stage .layer.shape-layer.selected'));
