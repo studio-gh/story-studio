@@ -102,7 +102,9 @@ $('stage').addEventListener('pointermove',e=>{
   if(Math.abs(dx)+Math.abs(dy)>3){drag.moved=true;suppressClick=true}
   if(drag.mode==='move'){
     l.x=Math.max(0,Math.min(CANVAS_W,drag.x+dx/(r.width/CANVAS_W)));
-    l.y=Math.max(0,Math.min(CANVAS_H,drag.y+dy/(r.width/CANVAS_W)));
+    // X and Y use the same logical scale because the artboard is a fixed 500-unit 9:16 surface.
+    const unit=r.width/CANVAS_W;
+    l.y=Math.max(0,Math.min(CANVAS_H,drag.y+dy/unit));
     const guide=snapPosition(l,9);
     updateGuides(guide);
   }else if(drag.mode==='crop'){
