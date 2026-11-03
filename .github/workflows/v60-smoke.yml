@@ -443,13 +443,9 @@ jobs:
           const shapeLayer = await page.locator('#stage .layer.selected').count();
           assert.equal(shapeLayer, 1, 'The newly created shape must become the selected layer');
           // Shape tests run as a clean isolated interaction, not after prior text/keyboard state.
-          await page.evaluate(() => {
-            document.activeElement?.blur();
-            document.body.classList.remove('keyboard-open','v67-text-editing','v63-context-text','v62-curve-editing');
-            window.v60SetPanel(false);
-            window.selectLayer(layers.find(layer=>layer.type==='shape')?.id);
-            window.v60SetPanel(true,'shape');
-          });
+          // Select the shape through the canvas itself. The V63 "Concluir" action intentionally
+          // clears selectedId, so programmatic state resets are not representative of user flow.
+          await page.locator('#stage .layer.shape-layer').last().click({force:true});
           await page.waitForFunction(() => {
             const el=document.querySelector('#stage .layer.shape-layer.selected');
             const r=document.querySelector('#stage')?.getBoundingClientRect();
