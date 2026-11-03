@@ -3509,3 +3509,40 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
  }
  body.v62-curve-editing #create .creation-dock{display:none!important}
 }
+
+
+/* V62.1 artboard geometry authority
+   Keep the actual editing surface 9:16 in every responsive/editor state.
+   This intentionally overrides accumulated legacy square-preview sizing rules. */
+#stage.stage {
+  display:block !important;
+  position:relative !important;
+  box-sizing:border-box !important;
+  width:min(100%, 380px) !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-width:min(100%, 380px) !important;
+  max-height:none !important;
+  aspect-ratio:9 / 16 !important;
+  flex:0 0 auto !important;
+  margin:0 auto !important;
+  overflow:hidden !important;
+}
+@media (min-width:800px) {
+  #stage.stage {
+    width:min(100%, 520px) !important;
+    max-width:520px !important;
+    height:auto !important;
+    aspect-ratio:9 / 16 !important;
+    max-height:none !important;
+  }
+}
+@media (max-width:799px) {
+  #stage.stage {
+    width:min(100%, 380px) !important;
+    max-width:380px !important;
+    height:auto !important;
+    aspect-ratio:9 / 16 !important;
+    max-height:none !important;
+  }
+}
