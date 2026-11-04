@@ -40,8 +40,8 @@ jobs:
           assert 'viewport-fit=cover' in html, 'Mobile viewport must opt into device safe areas'
           assert 'env(safe-area-inset-top' in css, 'CSS must account for the top device safe area'
           assert 'env(safe-area-inset-bottom' in css, 'CSS must account for the bottom device safe area'
-          assert len(re.findall(r'<style\\b', html, re.I)) == 0
-          assert len(re.findall(r'<script\\b(?![^>]*src=)', html, re.I)) == 0
+          assert len(re.findall(r'<style\b', html, re.I)) == 0
+          assert len(re.findall(r'<script\b(?![^>]*src=)', html, re.I)) == 0
           for feature in ("startTextEditing", "addShape", "removeBackground", "copyPNG", "exportPNG", "moveLayer", "renderBlob"):
               assert feature in js, f"Missing runtime feature: {feature}"
           assert "aspect-ratio" in css
