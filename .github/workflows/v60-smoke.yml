@@ -64,6 +64,50 @@ jobs:
             sleep 1
           done
 
+      - name: Synchronize simulated keyboard viewport with visualViewport
+        run: |
+          node - <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage({viewport:{width:390,height:844}});
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded'});
+            await page.locator('#home .hero .actions .btn').click();
+            await page.waitForFunction(() => document.querySelector('#create')?.classList.contains('active'));
+            await page.evaluate(() => window.addText('Keyboard layout verification'));
+            await page.locator('#textValue').fill('Keyboard layout verification');
+            await page.waitForFunction(() => document.activeElement?.id==='textValue');
+            await page.setViewportSize({width:390,height:460});
+            await page.waitForTimeout(200);
+            await page.evaluate(() => {
+              const input=document.getElementById('textValue');
+              input.focus();
+              document.body.classList.add('keyboard-open');
+              const vv=window.visualViewport;
+              if (vv) {
+                Object.defineProperty(vv,'height',{configurable:true,value:460});
+                Object.defineProperty(vv,'offsetTop',{configurable:true,value:0});
+                vv.dispatchEvent(new Event('resize'));
+              }
+              window.v80KeyboardLayout?.();
+            });
+            await page.waitForTimeout(100);
+            const state=await page.evaluate(() => {
+              const stage=document.getElementById('stage').getBoundingClientRect();
+              const wrap=document.getElementById('stage').parentElement.getBoundingClientRect();
+              const vv=window.visualViewport;
+              return {stage:{width:stage.width,height:stage.height,top:stage.top,bottom:stage.bottom},
+                wrap:{height:wrap.height,top:wrap.top},keyboardOpen:document.body.classList.contains('keyboard-open'),
+                visualViewport:{height:vv?.height,offsetTop:vv?.offsetTop},
+                cssVariable:getComputedStyle(document.documentElement).getPropertyValue('--keyboard-preview-top')};
+            });
+            console.log('V80_KEYBOARD_CONTROLLER_STATE:',JSON.stringify(state));
+            if(state.stage.height<230) throw new Error('V80 controller did not retain a readable preview: '+JSON.stringify(state));
+            if(!state.keyboardOpen) throw new Error('Keyboard state was not retained');
+            await browser.close();
+          })().catch(error=>{console.error(error);process.exit(1)});
+          NODE
+
       - name: Test mobile canvas, text editing, curve, and export; capture screenshots
         run: |
           mkdir -p artifacts
