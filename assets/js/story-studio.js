@@ -541,49 +541,90 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 
 
-/* V76: single source of truth for virtual keyboard state.
-   All editor behaviors read the same visualViewport measurement. */
+/* V80: keyboard layout is applied directly to the canvas and restored on close.
+   Inline dimensions avoid legacy CSS rules fighting over the mobile preview. */
 (function(){
  const input=document.getElementById('textValue');
- if(!input)return;
- let lastOpen=false;
- let syncQueued=false;
- function measure(){
+ const stage=document.getElementById('stage');
+ const wrap=stage?.parentElement;
+ const panel=document.querySelector('#create .panel');
+ if(!input||!stage||!wrap||!panel)return;
+ const saved=new Map();
+ const remember=(el,props)=>{
+   if(saved.has(el))return;
+   const snapshot={};
+   props.forEach(prop=>{snapshot[prop]={value:el.style.getPropertyValue(prop),priority:el.style.getPropertyPriority(prop)}});
+   saved.set(el,snapshot);
+ };
+ const apply=(el,values)=>{
+   remember(el,Object.keys(values));
+   Object.entries(values).forEach(([prop,value])=>el.style.setProperty(prop,value,'important'));
+ };
+ function clearInline(){
+   for(const [el,props] of saved){
+     for(const [prop,state] of Object.entries(props)){
+       if(state.value)el.style.setProperty(prop,state.value,state.priority);
+       else el.style.removeProperty(prop);
+     }
+   }
+   saved.clear();
+ }
+ function layout(){
    const vv=window.visualViewport;
    const focused=document.activeElement===input;
    const layoutHeight=window.innerHeight||document.documentElement.clientHeight||0;
    const visibleHeight=vv?.height||layoutHeight;
    const covered=Math.max(0,layoutHeight-visibleHeight-(vv?.offsetTop||0));
-   const open=focused && window.matchMedia('(max-width: 799px)').matches &&
-     !!vv && (visibleHeight<layoutHeight*.82 || covered>120);
+   const open=focused&&window.matchMedia('(max-width: 799px)').matches&&!!vv&&
+     (visibleHeight<layoutHeight*.82||covered>120);
    document.body.classList.toggle('keyboard-open',open);
-   if(open){
-     const top=Math.max(6,Math.min(32,Math.round((vv.offsetTop||0)+6)));
-     document.documentElement.style.setProperty('--keyboard-preview-top',top+'px');
-   }else{
+   if(!open){
+     clearInline();
      document.documentElement.style.removeProperty('--keyboard-preview-top');
+     return {open:false,visibleHeight,layoutHeight,covered};
    }
-   return {open,visibleHeight,layoutHeight,covered};
- }
- function sync(){
-   if(syncQueued)return;
-   syncQueued=true;
-   requestAnimationFrame(()=>{
-     syncQueued=false;
-     const state=measure();
-     if(state.open&&!lastOpen){
-       requestAnimationFrame(()=>{
-         const field=document.getElementById('textEntryField');
-         const inputRect=input.getBoundingClientRect();
-         const vv=window.visualViewport;
-         if(field&&vv&&inputRect.bottom>vv.height-8){
-           field.scrollIntoView({behavior:'auto',block:'nearest'});
-         }
-       });
-     }
-     lastOpen=state.open;
+   const stageHeight=Math.max(230,Math.min(240,Math.floor(visibleHeight*.52)));
+   const stageWidth=Math.round(stageHeight*9/16);
+   const wrapHeight=stageHeight+10;
+   apply(wrap,{
+     position:'fixed',top:'0px',left:'0px',right:'0px',
+     display:'flex',width:'100vw',height:wrapHeight+'px',
+     'min-height':wrapHeight+'px','max-height':wrapHeight+'px',
+     'box-sizing':'border-box',margin:'0px',padding:'5px 8px',
+     'align-items':'center','justify-content':'center',
+     overflow:'hidden',background:'#fffcf4','z-index':'3000',
+     border:'0px', 'border-bottom':'1px solid #ded8cd'
    });
+   apply(stage,{
+     display:'block',position:'relative',flex:'0 0 '+stageHeight+'px',
+     width:stageWidth+'px','min-width':stageWidth+'px','max-width':stageWidth+'px',
+     height:stageHeight+'px','min-height':stageHeight+'px','max-height':stageHeight+'px',
+     'aspect-ratio':'auto',margin:'0 auto',overflow:'hidden','box-sizing':'border-box'
+   });
+   apply(panel,{
+     position:'relative',top:'auto',right:'auto',bottom:'auto',left:'auto',
+     'margin-top':wrapHeight+'px',
+     'max-height':'calc(100vh - '+(wrapHeight+12)+'px)',
+     overflow:'auto','overscroll-behavior':'contain'
+   });
+   panel.style.scrollMarginTop=wrapHeight+'px';
+   document.documentElement.style.setProperty('--keyboard-preview-top','0px');
+   if(vv){
+     const field=document.getElementById('textEntryField');
+     const fieldRect=field?.getBoundingClientRect();
+     if(field&&fieldRect&&fieldRect.top<wrapHeight-2){
+       field.style.scrollMarginTop=wrapHeight+'px';
+       field.scrollIntoView({behavior:'auto',block:'nearest'});
+     }
+   }
+   return {open:true,visibleHeight,layoutHeight,covered,stageHeight,stageWidth,wrapHeight};
  }
+ let queued=false;
+ const sync=()=>{
+   if(queued)return;
+   queued=true;
+   requestAnimationFrame(()=>{queued=false;layout()});
+ };
  input.addEventListener('focus',()=>{
    if(window.v60SetPanel)window.v60SetPanel(true,'text');
    sync();
@@ -591,8 +632,11 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  input.addEventListener('blur',()=>{
    setTimeout(()=>{
      document.body.classList.remove('keyboard-open');
+     clearInline();
      document.documentElement.style.removeProperty('--keyboard-preview-top');
-     lastOpen=false;
+     panel.style.removeProperty('scroll-margin-top');
+     const field=document.getElementById('textEntryField');
+     if(field)field.style.removeProperty('scroll-margin-top');
      if(window.v60SetPanel)window.v60SetPanel(true,'text');
    },160);
  });
@@ -603,8 +647,8 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
  window.addEventListener('resize',sync,{passive:true});
  document.addEventListener('focusin',sync);
  document.addEventListener('focusout',()=>setTimeout(sync,180));
- window.v76SyncKeyboard=sync;
- window.v76KeyboardState=measure;
+ window.v80KeyboardLayout=layout;
+ window.v80RestoreKeyboardLayout=clearInline;
  sync();
 })();
 
