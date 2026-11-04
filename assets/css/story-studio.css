@@ -3546,3 +3546,27 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     max-height:none !important;
   }
 }
+
+
+/* V71: enforce the 9:16 artboard after all legacy state-specific rules.
+   The stage must never inherit a zero-height layout from text/curve editing. */
+@media (max-width:799px){
+  #create.view.active .workspace .stage-wrap #stage.stage,
+  #create.view.active .workspace #stage.stage,
+  body.v62-curve-editing #create.view.active #stage.stage,
+  body.v67-text-editing #create.view.active #stage.stage {
+    display:block!important;
+    box-sizing:border-box!important;
+    position:relative!important;
+    flex:0 0 auto!important;
+    width:min(calc(100vw - 32px),380px)!important;
+    min-width:0!important;
+    max-width:380px!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    aspect-ratio:9 / 16!important;
+    margin:0 auto!important;
+    overflow:hidden!important;
+  }
+}
