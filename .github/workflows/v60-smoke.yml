@@ -379,6 +379,10 @@ jobs:
           await page.setViewportSize({ width: 390, height: 460 });
           await page.waitForTimeout(180); // Let viewport listeners settle before applying the keyboard-state emulation.
           await page.evaluate(() => document.body.classList.add('keyboard-open'));
+          const keyboardController = await page.evaluate(() => window.v80KeyboardLayout?.() || null);
+          assert.equal(keyboardController?.open, true, 'V80 keyboard controller must engage after keyboard-state emulation');
+          assert.ok(keyboardController.stageHeight >= 230, 'V80 controller must retain a readable preview while the keyboard is open');
+          await page.waitForTimeout(50);
           const keyboardState = await page.evaluate(() => {
             const canvas = document.querySelector('#stage').getBoundingClientRect();
             const input = document.querySelector('#textValue').getBoundingClientRect();
