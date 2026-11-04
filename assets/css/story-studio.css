@@ -3751,3 +3751,20 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
    overflow-y:auto!important;overscroll-behavior:contain!important;
  }
 }
+
+
+/* V79: cover every active text-editing flag in the keyboard state. */
+@media(max-width:799px){
+ html body.keyboard-open.v67-text-editing #create.view.active .workspace .stage-wrap #stage.stage,
+ html body.v67-text-editing.keyboard-open #create.view.active .workspace .stage-wrap #stage.stage,
+ html body.keyboard-open.v63-context-text #create.view.active .workspace .stage-wrap #stage.stage{
+   width:135px!important;min-width:135px!important;max-width:135px!important;
+   height:240px!important;min-height:240px!important;max-height:240px!important;
+   aspect-ratio:auto!important;flex:0 0 240px!important;
+ }
+ html body.keyboard-open.v67-text-editing #create.view.active .workspace .stage-wrap,
+ html body.keyboard-open.v63-context-text #create.view.active .workspace .stage-wrap{
+   height:250px!important;min-height:250px!important;max-height:250px!important;
+   display:flex!important;align-items:center!important;justify-content:center!important;
+ }
+}
