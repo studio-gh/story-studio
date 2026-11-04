@@ -602,20 +602,19 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
      height:stageHeight+'px','min-height':stageHeight+'px','max-height':stageHeight+'px',
      'aspect-ratio':'auto',margin:'0 auto',overflow:'hidden','box-sizing':'border-box'
    });
+   const viewportOffset=Math.max(0,Math.round(vv?.offsetTop||0));
+   const safeTop='env(safe-area-inset-top, 0px)';
+   const safeBottom='env(safe-area-inset-bottom, 0px)';
+   const panelHeight='calc('+visibleHeight+'px - '+wrapHeight+'px - '+safeTop+' - '+safeBottom+')';
    apply(panel,{
-     position:'relative',top:'auto',right:'auto',bottom:'auto',left:'auto',
-     'margin-top':wrapHeight+'px',
-     'max-height':'calc(100vh - '+(wrapHeight+12)+'px)',
-     overflow:'auto','overscroll-behavior':'contain'
+     position:'fixed',top:'calc('+viewportOffset+'px + '+wrapHeight+'px + '+safeTop+')',
+     right:'0px',bottom:'auto',left:'0px',width:'100vw',
+     height:panelHeight,'min-height':'120px','max-height':panelHeight,
+     margin:'0px',overflow:'auto','overscroll-behavior':'contain',
+     'box-sizing':'border-box','z-index':'2500'
    });
    panel.style.scrollMarginTop=wrapHeight+'px';
    document.documentElement.style.setProperty('--keyboard-preview-top','0px');
-   // Mobile browsers may scroll the document when the keyboard reduces the
-   // visual viewport. Return to the editor top so the fixed preview and the
-   // text panel keep their intended, non-overlapping geometry.
-   if(window.scrollY>0)window.scrollTo({top:0,behavior:'auto'});
-   const field=document.getElementById('textEntryField');
-   if(field)field.style.scrollMarginTop=wrapHeight+'px';
    return {open:true,visibleHeight,layoutHeight,covered,stageHeight,stageWidth,wrapHeight};
  }
  let queued=false;
