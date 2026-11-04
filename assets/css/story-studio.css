@@ -3657,3 +3657,24 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     overflow-y:auto!important;overscroll-behavior:contain!important;
   }
 }
+
+
+/* V74: keyboard preview is 9:16 and at least 230px tall on compact phones.
+   Keep the text input sheet fully below the pinned artboard. */
+@media(max-width:799px){
+ body.keyboard-open #create.view.active .workspace .stage-wrap{
+   height:clamp(250px,54dvh,290px)!important;
+   min-height:clamp(250px,54dvh,290px)!important;
+   max-height:clamp(250px,54dvh,290px)!important;
+ }
+ body.keyboard-open #create.view.active .workspace .stage-wrap #stage.stage{
+   width:min(calc(54dvh * 9 / 16),172px)!important;
+   min-width:140px!important;max-width:172px!important;
+   height:min(54dvh,260px)!important;min-height:230px!important;
+   max-height:260px!important;aspect-ratio:9/16!important;
+ }
+ body.keyboard-open #create.view.active .workspace .panel{
+   margin-top:clamp(250px,54dvh,290px)!important;
+   max-height:calc(100dvh - clamp(250px,54dvh,290px) - 12px)!important;
+ }
+}
