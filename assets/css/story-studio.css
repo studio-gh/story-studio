@@ -3769,28 +3769,33 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
  }
 }
 
-/* V82: compact workspace preview. The workspace is a viewing surface,
-   not a device-ratio frame; export remains alpha-transparent and content-cropped. */
+/* V83: stable compact preview surface.
+   Keep the stage measurable in every editor mode without forcing a 9:16 frame.
+   The art is contained proportionally by the renderer; the workspace is not the export. */
 #create.view.active .workspace .stage-wrap{
   display:flex!important;
-  flex-direction:column!important;
-  align-items:stretch!important;
-  justify-content:flex-start!important;
+  align-items:center!important;
+  justify-content:center!important;
   box-sizing:border-box!important;
+  min-width:0!important;
   overflow:hidden!important;
 }
 #create.view.active .workspace .stage-wrap #stage.stage{
-  flex:1 1 auto!important;
-  width:100%!important;
-  max-width:none!important;
-  height:auto!important;
+  display:block!important;
+  position:relative!important;
+  flex:0 1 auto!important;
+  width:min(100%,560px)!important;
+  height:100%!important;
+  min-width:0!important;
   min-height:0!important;
-  max-height:none!important;
+  max-width:100%!important;
+  max-height:100%!important;
   aspect-ratio:auto!important;
   margin:0 auto!important;
 }
-@media (min-width:800px){
+@media(min-width:800px){
   #create.view.active .workspace{
+    display:grid!important;
     grid-template-columns:minmax(0,1fr) 360px!important;
     align-items:start!important;
   }
@@ -3799,11 +3804,8 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     min-height:390px!important;
     padding:16px!important;
   }
-  #create.view.active .workspace .stage-wrap #stage.stage{
-    max-height:100%!important;
-  }
 }
-@media (max-width:799px){
+@media(max-width:799px){
   #create.view.active .workspace{
     gap:10px!important;
   }
@@ -3812,6 +3814,37 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     min-height:320px!important;
     max-height:430px!important;
     padding:10px!important;
+  }
+  /* Override historical keyboard rules: use the visible viewport, not a
+     hard-coded portrait artboard. */
+  html body.keyboard-open #create.view.active .workspace .stage-wrap{
+    position:fixed!important;
+    top:0!important;left:0!important;right:0!important;
+    width:100vw!important;
+    height:clamp(190px,34dvh,250px)!important;
+    min-height:clamp(190px,34dvh,250px)!important;
+    max-height:clamp(190px,34dvh,250px)!important;
+    margin:0!important;
+    padding:8px 10px!important;
+    z-index:3000!important;
+    background:#fffcf4!important;
+  }
+  html body.keyboard-open #create.view.active .workspace .stage-wrap #stage.stage{
+    flex:0 1 auto!important;
+    width:min(100%,560px)!important;
+    height:100%!important;
+    min-width:0!important;min-height:0!important;
+    max-width:100%!important;max-height:100%!important;
+    aspect-ratio:auto!important;
+  }
+  html body.keyboard-open #create.view.active .workspace .panel{
+    position:relative!important;
+    inset:auto!important;
+    margin-top:clamp(190px,34dvh,250px)!important;
+    max-height:calc(100dvh - clamp(190px,34dvh,250px) - 12px)!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom))!important;
   }
   #create.view.active .workspace .panel{
     padding-bottom:calc(24px + env(safe-area-inset-bottom))!important;
