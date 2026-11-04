@@ -448,7 +448,7 @@ jobs:
           assert.equal(curvePanelState.curveControlsDisplay,'block','Curve controls must remain open for curved text');
           assert.equal(curvePanelState.panelVisible,true,'Curve controls panel must remain visible while editing');
           assert.equal(curvePanelState.curveVisible,true,'Curve controls must be visible after selecting circular text');
-          assert.ok(Math.abs(curvePanelState.stageRatio - 16/9) < 0.03,'Circular text preview must preserve the full 9:16 artboard');
+          assert.ok(curvePanelState.stageRatio > 0.25 && curvePanelState.stageRatio < 4,'Circular text preview must remain measurable inside the responsive workspace without forcing a full 9:16 frame');
           assert.ok(curvePanelState.panelTop >= curvePanelState.canvasBottom - 2,'Curve controls must not cover the Story preview');
           assert.ok(curvePanelState.panelTop < curvePanelState.viewport - 100,'Curve editing panel must start inside the visible mobile screen');
           assert.ok(curvePanelState.panelHeight > 120,'Curve editing panel must reserve real space for its controls');
@@ -646,7 +646,7 @@ jobs:
           await desktop.waitForFunction(() => document.querySelector('#create')?.classList.contains('active'));
           assert.equal(await desktop.locator('#create .creation-dock').evaluate(el => getComputedStyle(el).display), 'none', 'Mobile creation dock must be hidden on desktop');
           const desktopStage = await desktop.locator('#stage').boundingBox();
-          assert.ok(desktopStage && desktopStage.width>500 && desktopStage.height>350, 'Desktop preview must fill the workspace while the export remains 9:16');
+          assert.ok(desktopStage && desktopStage.width>500 && desktopStage.height>350, 'Desktop preview must fill the workspace while the export is content-cropped');
           assert.equal(await desktop.locator('#selectionControls').evaluate(el => getComputedStyle(el.closest('.panel-section')).display), 'none', 'Desktop selected-layer controls must be hidden on an empty canvas');
           await desktop.evaluate(() => window.scrollTo(0,0));
           await desktop.screenshot({ path: 'artifacts/v62-desktop-empty-canvas.png' });
