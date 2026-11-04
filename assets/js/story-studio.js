@@ -610,14 +610,12 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    });
    panel.style.scrollMarginTop=wrapHeight+'px';
    document.documentElement.style.setProperty('--keyboard-preview-top','0px');
-   if(vv){
-     const field=document.getElementById('textEntryField');
-     const fieldRect=field?.getBoundingClientRect();
-     if(field&&fieldRect&&fieldRect.top<wrapHeight-2){
-       field.style.scrollMarginTop=wrapHeight+'px';
-       field.scrollIntoView({behavior:'auto',block:'nearest'});
-     }
-   }
+   // Mobile browsers may scroll the document when the keyboard reduces the
+   // visual viewport. Return to the editor top so the fixed preview and the
+   // text panel keep their intended, non-overlapping geometry.
+   if(window.scrollY>0)window.scrollTo({top:0,behavior:'auto'});
+   const field=document.getElementById('textEntryField');
+   if(field)field.style.scrollMarginTop=wrapHeight+'px';
    return {open:true,visibleHeight,layoutHeight,covered,stageHeight,stageWidth,wrapHeight};
  }
  let queued=false;
