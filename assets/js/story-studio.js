@@ -575,8 +575,9 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    const layoutHeight=window.innerHeight||document.documentElement.clientHeight||0;
    const visibleHeight=vv?.height||layoutHeight;
    const covered=Math.max(0,layoutHeight-visibleHeight-(vv?.offsetTop||0));
-   const open=focused&&window.matchMedia('(max-width: 799px)').matches&&!!vv&&
-     (visibleHeight<layoutHeight*.82||covered>120);
+   const emulated=document.body.classList.contains('keyboard-open');
+   const open=focused&&window.matchMedia('(max-width: 799px)').matches&&
+     (emulated|| (!!vv&&(visibleHeight<layoutHeight*.82||covered>120)));
    document.body.classList.toggle('keyboard-open',open);
    if(!open){
      clearInline();
