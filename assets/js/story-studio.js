@@ -101,10 +101,19 @@ $('stage').addEventListener('pointermove',e=>{
   const dx=e.clientX-drag.ox,dy=e.clientY-drag.oy;
   if(Math.abs(dx)+Math.abs(dy)>3){drag.moved=true;suppressClick=true}
   if(drag.mode==='move'){
-    l.x=Math.max(0,Math.min(CANVAS_W,drag.x+dx/(r.width/CANVAS_W)));
-    // X and Y use the same logical scale because the artboard is a fixed 500-unit 9:16 surface.
+    // Keep image and shape bounds inside the logical 9:16 artboard, not only
+    // their centers. Account for scale and rotation so edge drags stay usable.
     const unit=r.width/CANVAS_W;
-    l.y=Math.max(0,Math.min(CANVAS_H,drag.y+dy/unit));
+    let halfX=0,halfY=0;
+    if(l.type==='shape'||l.type==='image'){
+      const scale=Math.max(.25,Number(l.scale)||1);
+      const angle=(Number(l.rotation)||0)*Math.PI/180;
+      const width=(Number(l.w)||0)*scale,height=(Number(l.h)||0)*scale;
+      halfX=(Math.abs(Math.cos(angle))*width+Math.abs(Math.sin(angle))*height)/2;
+      halfY=(Math.abs(Math.sin(angle))*width+Math.abs(Math.cos(angle))*height)/2;
+    }
+    l.x=Math.max(halfX,Math.min(CANVAS_W-halfX,drag.x+dx/unit));
+    l.y=Math.max(halfY,Math.min(CANVAS_H-halfY,drag.y+dy/unit));
     const guide=snapPosition(l,9);
     updateGuides(guide);
   }else if(drag.mode==='crop'){
