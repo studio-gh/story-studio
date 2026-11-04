@@ -3768,3 +3768,56 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
    display:flex!important;align-items:center!important;justify-content:center!important;
  }
 }
+
+
+/* V81: authoritative desktop artboard and contextual mobile panel spacing.
+   The visible artboard is always 9:16; the logical/export canvas is unchanged. */
+@media (min-width:800px){
+  #create.view.active .workspace{
+    grid-template-columns:minmax(0,1fr) 360px!important;
+    align-items:start!important;
+  }
+  #create.view.active .workspace .stage-wrap{
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    height:min(78vh,820px)!important;
+    min-height:min(78vh,820px)!important;
+    padding:18px!important;
+    overflow:auto!important;
+  }
+  #create.view.active .workspace .stage-wrap #stage.stage{
+    display:block!important;
+    position:relative!important;
+    flex:0 0 auto!important;
+    width:min(100%,calc((min(78vh,820px) - 36px) * 9 / 16),440px)!important;
+    max-width:440px!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    aspect-ratio:9 / 16!important;
+    margin:0 auto!important;
+    overflow:hidden!important;
+  }
+}
+@media (max-width:799px){
+  #create.view.active .workspace .panel{
+    padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;
+    scroll-padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;
+  }
+  #create.view.active .workspace .panel-section:last-child{
+    margin-bottom:20px!important;
+  }
+  #create.view.active .creation-dock{
+    z-index:60!important;
+  }
+  #create.view.active .workspace .panel:has(#imageControls[style*="display: block"]) ~ .creation-dock,
+  #create.view.active .workspace .panel:has(#layersPanelSection[style*="display: block"]) ~ .creation-dock{
+    display:none!important;
+  }
+  #create.view.active .workspace .panel .panel-section{
+    scroll-margin-bottom:calc(110px + env(safe-area-inset-bottom));
+  }
+}
