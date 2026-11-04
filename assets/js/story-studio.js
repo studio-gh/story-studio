@@ -541,29 +541,73 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
 
 
-/* Detect the virtual keyboard without hiding the live canvas while editing. */
+/* V76: single source of truth for virtual keyboard state.
+   All editor behaviors read the same visualViewport measurement. */
 (function(){
- const textFieldIds=['textValue'];
- const isEditing=()=>textFieldIds.some(id=>{const el=document.getElementById(id);return el&&document.activeElement===el}) ||
-   (document.activeElement && document.activeElement.matches('.field input[type="text"], .field textarea, .field select'));
- let baseHeight=window.innerHeight;
- function syncKeyboard(){
+ const input=document.getElementById('textValue');
+ if(!input)return;
+ let lastOpen=false;
+ let syncQueued=false;
+ function measure(){
    const vv=window.visualViewport;
-   const open=!!(isEditing() && vv && (vv.height < window.innerHeight * .78 || window.innerHeight-vv.height > 140));
+   const focused=document.activeElement===input;
+   const layoutHeight=window.innerHeight||document.documentElement.clientHeight||0;
+   const visibleHeight=vv?.height||layoutHeight;
+   const covered=Math.max(0,layoutHeight-visibleHeight-(vv?.offsetTop||0));
+   const open=focused && window.matchMedia('(max-width: 799px)').matches &&
+     !!vv && (visibleHeight<layoutHeight*.82 || covered>120);
    document.body.classList.toggle('keyboard-open',open);
    if(open){
-     const top=Math.max(8,Math.min(48,Math.round((vv.offsetTop||0)+8)));
+     const top=Math.max(6,Math.min(32,Math.round((vv.offsetTop||0)+6)));
      document.documentElement.style.setProperty('--keyboard-preview-top',top+'px');
-   }else document.documentElement.style.removeProperty('--keyboard-preview-top');
+   }else{
+     document.documentElement.style.removeProperty('--keyboard-preview-top');
+   }
+   return {open,visibleHeight,layoutHeight,covered};
  }
+ function sync(){
+   if(syncQueued)return;
+   syncQueued=true;
+   requestAnimationFrame(()=>{
+     syncQueued=false;
+     const state=measure();
+     if(state.open&&!lastOpen){
+       requestAnimationFrame(()=>{
+         const field=document.getElementById('textEntryField');
+         const inputRect=input.getBoundingClientRect();
+         const vv=window.visualViewport;
+         if(field&&vv&&inputRect.bottom>vv.height-8){
+           field.scrollIntoView({behavior:'auto',block:'nearest'});
+         }
+       });
+     }
+     lastOpen=state.open;
+   });
+ }
+ input.addEventListener('focus',()=>{
+   if(window.v60SetPanel)window.v60SetPanel(true,'text');
+   sync();
+ });
+ input.addEventListener('blur',()=>{
+   setTimeout(()=>{
+     document.body.classList.remove('keyboard-open');
+     document.documentElement.style.removeProperty('--keyboard-preview-top');
+     lastOpen=false;
+     if(window.v60SetPanel)window.v60SetPanel(true,'text');
+   },160);
+ });
  if(window.visualViewport){
-   window.visualViewport.addEventListener('resize',syncKeyboard);
-   window.visualViewport.addEventListener('scroll',syncKeyboard);
+   window.visualViewport.addEventListener('resize',sync,{passive:true});
+   window.visualViewport.addEventListener('scroll',sync,{passive:true});
  }
- document.addEventListener('focusin',()=>setTimeout(syncKeyboard,80));
- document.addEventListener('focusout',()=>setTimeout(syncKeyboard,180));
- window.addEventListener('resize',syncKeyboard);
+ window.addEventListener('resize',sync,{passive:true});
+ document.addEventListener('focusin',sync);
+ document.addEventListener('focusout',()=>setTimeout(sync,180));
+ window.v76SyncKeyboard=sync;
+ window.v76KeyboardState=measure;
+ sync();
 })();
+
 
 
 
@@ -621,35 +665,6 @@ function finishEraseStroke(){
 }
 document.addEventListener('pointerup',finishEraseStroke,{capture:true});
 document.addEventListener('pointercancel',finishEraseStroke,{capture:true});
-
-
-
-/* V37: when Android opens the keyboard, bring the active text field into view below the pinned preview. */
-(function(){
-  let lastOpen=false;
-  function keepEditorVisible(){
-    const field=document.getElementById('textEntryField');
-    const input=document.getElementById('textValue');
-    if(!field||!input)return;
-    const focused=document.activeElement===input;
-    const vv=window.visualViewport;
-    const open=focused && !!vv && (vv.height < window.innerHeight*.78 || window.innerHeight-vv.height>140);
-    if(open){
-      document.body.classList.add('keyboard-open');
-      if(!lastOpen){
-        requestAnimationFrame(()=>requestAnimationFrame(()=>{
-          field.scrollIntoView({behavior:'auto',block:'start'});
-        }));
-      }
-    }
-    lastOpen=open;
-  }
-  if(window.visualViewport){
-    window.visualViewport.addEventListener('resize',keepEditorVisible);
-    window.visualViewport.addEventListener('scroll',keepEditorVisible);
-  }
-  document.addEventListener('focusin',()=>setTimeout(keepEditorVisible,100));
-})();
 
 
 
@@ -842,24 +857,19 @@ function closeShapeMenu(){
 })();
 
 
-
 (function(){
  const field=document.getElementById('textEntryField'),input=document.getElementById('textValue');
  if(!field||!input)return;
  if(!document.getElementById('finishTextEditing')){
   const done=document.createElement('button');done.type='button';done.id='finishTextEditing';done.className='text-edit-done';done.textContent='Concluir edição';
-  done.addEventListener('click',()=>{input.blur();document.body.classList.remove('keyboard-open');if(window.v60SetPanel)window.v60SetPanel(true,'text');});
+  done.addEventListener('click',()=>{
+    input.blur();
+    document.body.classList.remove('keyboard-open');
+    document.documentElement.style.removeProperty('--keyboard-preview-top');
+    if(window.v60SetPanel)window.v60SetPanel(true,'text');
+  });
   field.appendChild(done);
  }
- const sync=()=>{
-  const vv=window.visualViewport;
-  const open=document.activeElement===input&&!!vv&&(vv.height<window.innerHeight*.82||window.innerHeight-vv.height>120);
-  document.body.classList.toggle('keyboard-open',open);
- };
- input.addEventListener('focus',()=>{if(window.v60SetPanel)window.v60SetPanel(true,'text');sync();setTimeout(sync,100)});
- input.addEventListener('blur',()=>setTimeout(()=>{document.body.classList.remove('keyboard-open');if(window.v60SetPanel)window.v60SetPanel(true,'text');},160));
- if(window.visualViewport){window.visualViewport.addEventListener('resize',sync);window.visualViewport.addEventListener('scroll',sync)}
- window.addEventListener('resize',sync);
 })();
 
 
