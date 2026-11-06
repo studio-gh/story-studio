@@ -1013,6 +1013,31 @@ function closeShapeMenu(){
   const count=Array.isArray(layers)?layers.length:0;
   const kind=selectedLayer?.type||'';
   const hasSelection=!!selectedLayer;
+  const stageWrap=stage.parentElement;
+  const keyboardOpen=document.body.classList.contains('keyboard-open');
+  const compactSelectionPreview=mobile()&&!keyboardOpen&&(kind==='shape'||kind==='image');
+  if(compactSelectionPreview){
+    stageWrap.dataset.v63ShapePreview='true';
+    stageWrap.style.setProperty('display','flex','important');
+    stageWrap.style.setProperty('flex-direction','column','important');
+    stageWrap.style.setProperty('align-items','center','important');
+    stageWrap.style.setProperty('justify-content','flex-start','important');
+    stageWrap.style.setProperty('box-sizing','border-box','important');
+    stageWrap.style.setProperty('height','clamp(320px,42vh,430px)','important');
+    stageWrap.style.setProperty('min-height','320px','important');
+    stageWrap.style.setProperty('max-height','430px','important');
+    stageWrap.style.setProperty('padding','10px','important');
+    stage.style.setProperty('display','block','important');
+    stage.style.setProperty('flex','1 1 auto','important');
+    stage.style.setProperty('height','auto','important');
+    stage.style.setProperty('min-height','0','important');
+    stage.style.setProperty('max-height','none','important');
+    stage.style.setProperty('aspect-ratio','auto','important');
+  }else if(stageWrap.dataset.v63ShapePreview==='true'&&!keyboardOpen){
+    ['display','flex-direction','align-items','justify-content','box-sizing','height','min-height','max-height','padding'].forEach(prop=>stageWrap.style.removeProperty(prop));
+    ['display','flex','height','min-height','max-height','aspect-ratio'].forEach(prop=>stage.style.removeProperty(prop));
+    delete stageWrap.dataset.v63ShapePreview;
+  }
   document.body.classList.toggle('v63-empty',count===0);
   document.body.classList.toggle('v63-context-text',kind==='text');
   document.body.classList.toggle('v63-context-shape',kind==='shape');
