@@ -3854,3 +3854,37 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     margin-bottom:8px!important;
   }
 }
+
+
+/* V84: selected shape/photo keeps the responsive preview measurable after leaving text focus. */
+@media (max-width:799px){
+  html body:not(.keyboard-open).v63-context-shape #create.view.active .workspace .stage-wrap,
+  html body:not(.keyboard-open).v63-context-photo #create.view.active .workspace .stage-wrap{
+    display:flex!important;
+    flex:0 0 auto!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    height:clamp(320px,42vh,430px)!important;
+    min-height:320px!important;
+    max-height:430px!important;
+    padding:10px!important;
+    overflow:hidden!important;
+  }
+  html body:not(.keyboard-open).v63-context-shape #create.view.active .workspace .stage-wrap #stage.stage,
+  html body:not(.keyboard-open).v63-context-photo #create.view.active .workspace .stage-wrap #stage.stage{
+    display:block!important;
+    position:relative!important;
+    flex:1 1 auto!important;
+    width:min(100%,560px)!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    margin:0 auto!important;
+  }
+}
