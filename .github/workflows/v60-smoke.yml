@@ -497,17 +497,20 @@ jobs:
           // Record the full layout chain before waiting, so a collapsed preview is diagnosable.
           const shapeLayoutDiagnostic = await page.evaluate(() => {
             const nodes = ['#create .workspace', '#create .stage-wrap', '#stage', '#create .panel'];
-            return nodes.map(selector => {
-              const el=document.querySelector(selector);
-              if(!el)return {selector,missing:true};
-              const r=el.getBoundingClientRect(),s=getComputedStyle(el);
-              return {selector,rect:{x:r.x,y:r.y,width:r.width,height:r.height,top:r.top,bottom:r.bottom},
-                display:s.display,position:s.position,height:s.height,minHeight:s.minHeight,maxHeight:s.maxHeight,
-                flex:s.flex,flexDirection:s.flexDirection,alignItems:s.alignItems,aspectRatio:s.aspectRatio,
-                overflow:s.overflow,inlineStyle:el.getAttribute('style')};
-            });
+            return {
+              bodyClasses:document.body.className,
+              nodes:nodes.map(selector => {
+                const el=document.querySelector(selector);
+                if(!el)return {selector,missing:true};
+                const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+                return {selector,rect:{x:r.x,y:r.y,width:r.width,height:r.height,top:r.top,bottom:r.bottom},
+                  display:s.display,position:s.position,height:s.height,minHeight:s.minHeight,maxHeight:s.maxHeight,
+                  flex:s.flex,flexDirection:s.flexDirection,alignItems:s.alignItems,aspectRatio:s.aspectRatio,
+                  overflow:s.overflow,inlineStyle:el.getAttribute('style')};
+              })
+            };
           });
-          console.log('SHAPE_LAYOUT_DIAGNOSTIC:',JSON.stringify({bodyClasses:document.body.className,nodes:shapeLayoutDiagnostic}));
+          console.log('SHAPE_LAYOUT_DIAGNOSTIC:',JSON.stringify(shapeLayoutDiagnostic));
           // Wait for the responsive workspace to finish its layout pass before measuring.
           await page.waitForFunction(() => {
             const stage=document.querySelector('#stage');
