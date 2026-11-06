@@ -499,14 +499,23 @@ jobs:
             const nodes = ['#create .workspace', '#create .stage-wrap', '#stage', '#create .panel'];
             return {
               bodyClasses:document.body.className,
+              createClasses:document.querySelector('#create')?.className,
               nodes:nodes.map(selector => {
                 const el=document.querySelector(selector);
                 if(!el)return {selector,missing:true};
                 const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+                const matchedRules=[];
+                const collect=rules=>{for(const rule of rules){if(rule.cssRules){collect(rule.cssRules);continue}
+                  if(!rule.selectorText||!rule.style)continue;
+                  const display=rule.style.getPropertyValue('display'),height=rule.style.getPropertyValue('height');
+                  if(!display&&!height)continue;
+                  try{if(el.matches(rule.selectorText))matchedRules.push({selector:rule.selectorText,display,displayImportant:rule.style.getPropertyPriority('display'),height,heightImportant:rule.style.getPropertyPriority('height')})}catch(e){}
+                }};
+                for(const sheet of document.styleSheets){try{collect(sheet.cssRules)}catch(e){}}
                 return {selector,rect:{x:r.x,y:r.y,width:r.width,height:r.height,top:r.top,bottom:r.bottom},
                   display:s.display,position:s.position,height:s.height,minHeight:s.minHeight,maxHeight:s.maxHeight,
                   flex:s.flex,flexDirection:s.flexDirection,alignItems:s.alignItems,aspectRatio:s.aspectRatio,
-                  overflow:s.overflow,inlineStyle:el.getAttribute('style')};
+                  overflow:s.overflow,inlineStyle:el.getAttribute('style'),matchedRules};
               })
             };
           });
