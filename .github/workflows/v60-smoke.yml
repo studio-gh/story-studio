@@ -494,6 +494,14 @@ jobs:
           // Select the shape through the canvas itself. The V63 "Concluir" action intentionally
           // clears selectedId, so programmatic state resets are not representative of user flow.
           await page.locator('#stage .layer.shape-layer').last().click({force:true});
+          // Wait for the responsive workspace to finish its layout pass before measuring
+          // the artboard. The previous assertion sampled immediately after the panel mode
+          // changed, when Chromium could still report a transient zero-height flex child.
+          await page.waitForFunction(() => {
+            const stage=document.querySelector('#stage');
+            const rect=stage?.getBoundingClientRect();
+            return !!rect && rect.width>100 && rect.height>180;
+          }, null, {timeout:5000});
           const shapeReady = await page.evaluate(() => {
             const el=document.querySelector('#stage .layer.shape-layer.selected');
             const stage=document.querySelector('#stage');
