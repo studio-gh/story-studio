@@ -310,7 +310,7 @@ jobs:
           assert.equal(stageVisible,true,'Canvas must have visible geometry on editor entry');
           let rect = await stage.boundingBox();
           assert.ok(rect && rect.width > 100 && rect.height > 170, 'Mobile canvas must be visible and usable');
-          assert.ok(Math.abs(rect.height / rect.width - 16 / 9) < 0.03, 'Canvas must keep 9:16 ratio');
+          assert.ok(rect.height / rect.width > 0.25 && rect.height / rect.width < 4, 'Visible preview must adapt to the available workspace instead of forcing a 9:16 frame');
           await page.screenshot({ path: 'artifacts/v62-mobile-empty-canvas.png' });
 
           await page.evaluate(() => window.addText('Story Studio V61'));
@@ -322,7 +322,8 @@ jobs:
             const sr=stage.getBoundingClientRect(),lr=layer.getBoundingClientRect();
             const dockEl=document.querySelector('.creation-dock'),dockRect=dockEl.getBoundingClientRect();return {stageHeight:sr.height,stageWidth:sr.width,layerVisible:lr.width>0&&lr.height>0&&lr.bottom>sr.top&&lr.top<sr.bottom,copyExists:!!document.querySelector('#copyStoryBtn'),copyActionCount:document.querySelectorAll('#create .editor-actions button[id*="copy"]').length,duplicateCopyAction:!!document.querySelector('#copyPNGTopBtn'),dockVisible:getComputedStyle(dockEl).display!=='none'&&dockRect.width>300,dock:dockRect};
           });
-          assert.ok(expandedPreview.stageHeight > 350, 'Focused text editing without an open keyboard must retain a useful 9:16 preview');
+          assert.ok(expandedPreview.stageHeight > 180 && expandedPreview.stageHeight < 520, 'Preview must remain useful without consuming the full mobile workspace');
+          assert.ok(expandedPreview.dock.bottom <= 844, 'Creation actions must remain within the mobile viewport');
           assert.equal(expandedPreview.layerVisible,true,'New text must remain visible inside the expanded preview');
           assert.equal(expandedPreview.copyExists,true,'Copy PNG must be available beside Export PNG');
           assert.equal(expandedPreview.copyActionCount,1,'The editor must show exactly one Copy PNG action');
