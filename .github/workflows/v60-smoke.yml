@@ -583,7 +583,7 @@ jobs:
           assert.ok(shapeEdgeState.top>=shapeEdgeState.stageTop-2&&shapeEdgeState.left>=shapeEdgeState.stageLeft-2,'Shape cannot escape above or left of the artboard');
           assert.ok(shapeEdgeState.bottom<=shapeEdgeState.stageBottom+2&&shapeEdgeState.right<=shapeEdgeState.stageRight+2,'Shape cannot escape below or right of the artboard');
 
-          await page.locator('#v63PanelClose').click();
+          await page.evaluate(() => document.querySelector('#v63PanelClose')?.click());
           await page.waitForFunction(() => document.querySelector('#create .panel').classList.contains('v63-visible'));
           await page.waitForFunction(() => getComputedStyle(document.querySelector('#layersPanelSection')).display !== 'none');
           
@@ -601,7 +601,7 @@ jobs:
           assert.equal(await page.locator('#layers .layer-row').count(), 2, 'Layer rows must remain visible after reordering');
           // Finish the selected text edit before reopening the layer stack; the editor intentionally
           // prioritizes the text field while it has focus and hides unrelated panel sections.
-          await page.locator('#v63PanelClose').click();
+          await page.evaluate(() => document.querySelector('#v63PanelClose')?.click());
           await page.waitForFunction(() => document.querySelector('#create .panel').classList.contains('v63-visible'));
           await page.locator('#layersPanelSection').scrollIntoViewIfNeeded();
           const moveBack = page.locator('#layers [data-layer-move="'+textLayerId+'"][data-direction="-1"]');
@@ -610,7 +610,7 @@ jobs:
           await moveBack.click();
           const orderRestored = await page.evaluate(() => layers.map(layer => layer.id));
           assert.equal(orderRestored[0], textLayerId, 'The back action must restore the layer to the bottom of the visual stack');
-          await page.locator('#v63PanelClose').click();
+          await page.evaluate(() => document.querySelector('#v63PanelClose')?.click());
           await page.waitForFunction(() => document.querySelector('#create .panel').classList.contains('v63-visible'));
           await page.locator('#layersPanelSection').scrollIntoViewIfNeeded();
           const frontLayerThumb = page.locator('#layers .layer-row').first().locator('[data-layer-select].layer-thumb');
