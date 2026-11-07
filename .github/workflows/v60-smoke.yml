@@ -636,9 +636,25 @@ jobs:
           const composite = await page.evaluate(async () => {
             const blob = await window.renderBlob();
             const bitmap = await createImageBitmap(blob);
-            return {width:bitmap.width,height:bitmap.height,size:blob.size};
+            const canvas = document.createElement('canvas');
+            canvas.width = bitmap.width; canvas.height = bitmap.height;
+            const ctx = canvas.getContext('2d', {willReadFrequently:true});
+            ctx.drawImage(bitmap,0,0);
+            const pixels = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+            let transparent=0, opaque=0, minX=canvas.width, minY=canvas.height, maxX=-1, maxY=-1;
+            for(let y=0;y<canvas.height;y++) for(let x=0;x<canvas.width;x++){
+              const alpha=pixels[(y*canvas.width+x)*4+3];
+              if(alpha===0) transparent++;
+              if(alpha>8){opaque++;minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
+            }
+            return {width:bitmap.width,height:bitmap.height,size:blob.size,transparent,opaque,
+              contentWidth:maxX-minX+1,contentHeight:maxY-minY+1,
+              cornerAlpha:[pixels[3],pixels[(canvas.width-1)*4+3],pixels[((canvas.height-1)*canvas.width)*4+3],pixels[(canvas.height*canvas.width-1)*4+3]]};
           });
           assert.ok(composite.size > 1000 && composite.width > 0 && composite.height > 0, 'PNG export must include text, shape and imported photo layers');
+          assert.ok(composite.transparent > 0 && composite.opaque > 0, 'PNG must preserve both transparent and visible pixels');
+          assert.ok(composite.width < 1400 && composite.height < 2489, 'PNG must be cropped to artwork bounds rather than the full logical artboard');
+          assert.ok(composite.cornerAlpha.every(alpha => alpha === 0), 'PNG outer corners must remain transparent');
           await page.screenshot({ path: 'artifacts/v62-mobile-photo-layer.png' });
           const downloadPromise = page.waitForEvent('download');
           await page.locator('#exportStoryBtn').click();
