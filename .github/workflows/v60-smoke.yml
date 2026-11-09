@@ -592,7 +592,7 @@ jobs:
             renderEditor();
             return {x:shape.x,y:shape.y};
           });
-          assert.ok(exportShapeFixture && exportShapeFixture.x+75<500 && exportShapeFixture.y+75<CANVAS_H,
+          assert.ok(exportShapeFixture && exportShapeFixture.x+75<500 && exportShapeFixture.y+75<(500*16/9),
             'The export fixture shape must remain inside the logical artboard');
 
           await page.evaluate(() => document.querySelector('#v63PanelClose')?.click());
