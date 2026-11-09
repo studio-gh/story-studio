@@ -584,23 +584,15 @@ jobs:
           assert.ok(shapeEdgeState.bottom<=shapeEdgeState.stageBottom+2&&shapeEdgeState.right<=shapeEdgeState.stageRight+2,'Shape cannot escape below or right of the artboard');
 
           // The edge-clamp regression intentionally touches the artboard boundary.
-          // Set up a separate deterministic export fixture after the gesture assertion:
-          // keep all layers inside the artboard and put the photo behind the graphic layers.
-          const exportFixture = await page.evaluate(() => {
+          // Reposition the shape only after its edge-clamp behavior has been asserted.
+          const exportShapeFixture = await page.evaluate(() => {
             const shape=layers.find(layer=>layer.type==='shape');
-            const photo=layers.find(layer=>layer.type==='image');
-            if(!shape||!photo)return null;
+            if(!shape)return null;
             shape.x=350; shape.y=550;
-            photo.x=250; photo.y=CANVAS_H/2; photo.scale=.55;
-            window.moveLayer(photo.id,-1);
-            window.moveLayer(photo.id,-1);
             renderEditor();
-            return {shape:{x:shape.x,y:shape.y},photo:{x:photo.x,y:photo.y,scale:photo.scale},
-              order:layers.map(layer=>layer.type)};
+            return {x:shape.x,y:shape.y};
           });
-          assert.ok(exportFixture,'The export fixture must contain both a shape and an imported image');
-          assert.deepEqual(exportFixture.order,['image','shape','text'],'The photo must sit behind the shape and text for a legible composite export');
-          assert.ok(exportFixture.shape.x+75<500&&exportFixture.shape.y+75<CANVAS_H,
+          assert.ok(exportShapeFixture && exportShapeFixture.x+75<500 && exportShapeFixture.y+75<CANVAS_H,
             'The export fixture shape must remain inside the logical artboard');
 
           await page.evaluate(() => document.querySelector('#v63PanelClose')?.click());
@@ -653,6 +645,17 @@ jobs:
           assert.equal(photoControlsState.display, 'block', 'Photo controls must appear after a photo is imported');
           assert.notEqual(photoControlsState.parent, 'none', 'Photo controls parent section must be revealed for the selected photo');
           assert.equal(await page.locator('#stage .layer.selected img.layer-media').count(), 1, 'Imported photo must render in the selected canvas layer');
+          const exportPhotoFixture = await page.evaluate(() => {
+            const photo=layers.find(layer=>layer.type==='image');
+            if(!photo)return null;
+            photo.x=250; photo.y=CANVAS_H/2; photo.scale=.55;
+            window.moveLayer(photo.id,-1);
+            window.moveLayer(photo.id,-1);
+            renderEditor();
+            return {photo:{x:photo.x,y:photo.y,scale:photo.scale},order:layers.map(layer=>layer.type)};
+          });
+          assert.ok(exportPhotoFixture,'The export fixture must retain an imported image');
+          assert.deepEqual(exportPhotoFixture.order,['image','shape','text'],'The photo must sit behind the shape and text for a legible composite export');
           const composite = await page.evaluate(async () => {
             const blob = await window.renderBlob();
             const bitmap = await createImageBitmap(blob);
