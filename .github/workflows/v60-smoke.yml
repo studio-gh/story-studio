@@ -444,6 +444,16 @@ jobs:
             'Circular text must export as a real, tightly cropped transparent PNG');
           assert.ok(Math.abs(circlePng.width-circlePng.height)<120,
             'Circular text PNG bounds should remain approximately square');
+          const circleDownloadPromise = page.waitForEvent('download');
+          await page.locator('#exportStoryBtn').click();
+          const circleDownload = await circleDownloadPromise;
+          assert.equal(circleDownload.suggestedFilename(),'story-studio.png','Circular text export must download the expected PNG filename');
+          const circleDownloadPath = await circleDownload.path();
+          assert.ok(circleDownloadPath,'Circular text export must produce a real downloadable file');
+          const circleBytes = await readFile(circleDownloadPath);
+          assert.ok(circleBytes.length>1000,'Circular text PNG must contain rendered artwork');
+          await circleDownload.saveAs('artifacts/story-studio-circle-export.png');
+          console.log('CIRCULAR_PNG_DOWNLOAD_STATE:',JSON.stringify({filename:circleDownload.suggestedFilename(),bytes:circleBytes.length,signature:Array.from(circleBytes.subarray(0,8))}));
           const curvePanelState = await page.evaluate(() => {
             const preview = document.querySelector('#stage-wrap') || document.querySelector('#create .stage-wrap');
             const canvas = document.querySelector('#stage');
