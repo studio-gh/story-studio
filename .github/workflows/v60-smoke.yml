@@ -655,7 +655,7 @@ jobs:
             return {photo:{x:photo.x,y:photo.y,scale:photo.scale},order:layers.map(layer=>layer.type)};
           });
           assert.ok(exportPhotoFixture,'The export fixture must retain an imported image');
-          assert.deepEqual(exportPhotoFixture.order,['image','shape','text'],'The photo must sit behind the shape and text for a legible composite export');
+          assert.deepEqual(exportPhotoFixture.order,['image','text','shape'],'The photo must sit behind the text and shape for a legible composite export');
           const composite = await page.evaluate(async () => {
             const blob = await window.renderBlob();
             const bitmap = await createImageBitmap(blob);
