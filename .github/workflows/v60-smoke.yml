@@ -584,23 +584,24 @@ jobs:
           assert.ok(shapeEdgeState.bottom<=shapeEdgeState.stageBottom+2&&shapeEdgeState.right<=shapeEdgeState.stageRight+2,'Shape cannot escape below or right of the artboard');
 
           // The edge-clamp regression intentionally touches the artboard boundary.
-          // Return the shape to the center before testing tight export cropping, so this
-          // export fixture has known transparent margins on all four sides.
-          const edgeShapeBox = await page.locator('#stage .layer.selected').boundingBox();
-          const exportStageBox = await page.locator('#stage').boundingBox();
-          assert.ok(edgeShapeBox && exportStageBox,'Shape and artboard must remain measurable before export fixture setup');
-          await page.mouse.move(edgeShapeBox.x+edgeShapeBox.width/2,edgeShapeBox.y+edgeShapeBox.height/2);
-          await page.mouse.down();
-          await page.mouse.move(exportStageBox.x+exportStageBox.width/2,exportStageBox.y+exportStageBox.height/2,{steps:12});
-          await page.mouse.up();
-          await page.waitForTimeout(100);
-          const exportShapeCenter = await page.evaluate(() => {
-            const l=typeof selected==='function'?selected():null;
-            return {type:l?.type,x:l?.x,y:l?.y};
+          // Set up a separate deterministic export fixture after the gesture assertion:
+          // keep all layers inside the artboard and put the photo behind the graphic layers.
+          const exportFixture = await page.evaluate(() => {
+            const shape=layers.find(layer=>layer.type==='shape');
+            const photo=layers.find(layer=>layer.type==='image');
+            if(!shape||!photo)return null;
+            shape.x=350; shape.y=550;
+            photo.x=250; photo.y=CANVAS_H/2; photo.scale=.55;
+            window.moveLayer(photo.id,-1);
+            window.moveLayer(photo.id,-1);
+            renderEditor();
+            return {shape:{x:shape.x,y:shape.y},photo:{x:photo.x,y:photo.y,scale:photo.scale},
+              order:layers.map(layer=>layer.type)};
           });
-          assert.equal(exportShapeCenter.type,'shape','The export fixture must retain the shape layer');
-          assert.ok(Math.abs(exportShapeCenter.x-250)<5&&Math.abs(exportShapeCenter.y-(500*16/9/2))<5,
-            'The export fixture shape must be centered so crop bounds can be tested independently from edge clipping');
+          assert.ok(exportFixture,'The export fixture must contain both a shape and an imported image');
+          assert.deepEqual(exportFixture.order,['image','shape','text'],'The photo must sit behind the shape and text for a legible composite export');
+          assert.ok(exportFixture.shape.x+75<500&&exportFixture.shape.y+75<CANVAS_H,
+            'The export fixture shape must remain inside the logical artboard');
 
           await page.evaluate(() => document.querySelector('#v63PanelClose')?.click());
           await page.waitForFunction(() => document.querySelector('#create .panel').classList.contains('v63-visible'));
@@ -670,6 +671,7 @@ jobs:
               contentWidth:maxX-minX+1,contentHeight:maxY-minY+1,
               cornerAlpha:[pixels[3],pixels[(canvas.width-1)*4+3],pixels[((canvas.height-1)*canvas.width)*4+3],pixels[(canvas.height*canvas.width-1)*4+3]]};
           });
+          console.log('PNG_COMPOSITE_STATE:',JSON.stringify(composite));
           assert.ok(composite.size > 1000 && composite.width > 0 && composite.height > 0, 'PNG export must include text, shape and imported photo layers');
           assert.ok(composite.transparent > 0 && composite.opaque > 0, 'PNG must preserve both transparent and visible pixels');
           assert.ok(composite.width < 1400 && composite.height < 2489, 'PNG must be cropped to artwork bounds rather than the full logical artboard');
