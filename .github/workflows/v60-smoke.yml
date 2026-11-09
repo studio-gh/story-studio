@@ -434,6 +434,16 @@ jobs:
           await page.evaluate(() => { window.setTextProp('curveRadius', 150); window.v60SetPanel(true,'text'); });
           await page.waitForTimeout(120);
           assert.equal(await page.locator('#curveRadiusVal').innerText(), '150', 'Circle radius control must update the selected text');
+          const circlePng = await page.evaluate(async () => {
+            const blob=await window.renderBlob();
+            const bitmap=await createImageBitmap(blob);
+            return {width:bitmap.width,height:bitmap.height,size:blob.size};
+          });
+          console.log('CIRCULAR_PNG_STATE:',JSON.stringify(circlePng));
+          assert.ok(circlePng.width>0&&circlePng.height>0&&circlePng.size>100&&circlePng.width<1400&&circlePng.height<2489,
+            'Circular text must export as a real, tightly cropped transparent PNG');
+          assert.ok(Math.abs(circlePng.width-circlePng.height)<120,
+            'Circular text PNG bounds should remain approximately square');
           const curvePanelState = await page.evaluate(() => {
             const preview = document.querySelector('#stage-wrap') || document.querySelector('#create .stage-wrap');
             const canvas = document.querySelector('#stage');
