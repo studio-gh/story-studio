@@ -589,7 +589,6 @@ jobs:
             const shape=layers.find(layer=>layer.type==='shape');
             if(!shape)return null;
             shape.x=350; shape.y=550;
-            renderEditor();
             return {x:shape.x,y:shape.y};
           });
           assert.ok(exportShapeFixture && exportShapeFixture.x+75<500 && exportShapeFixture.y+75<(500*16/9),
