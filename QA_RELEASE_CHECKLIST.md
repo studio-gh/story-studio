@@ -78,6 +78,44 @@ Every delivery update must include:
 
 ## Current investigation
 
-The current development branch is a candidate rebuild, not a release candidate. The previous browser workflow was cancelled during Chromium installation, before interaction tests ran. Earlier test failures identified unstable mobile preview geometry. Background removal has not yet passed an end-to-end test with a real photo. The current automated checks therefore do not establish that the editor is ready.
+Status as of 2026-11-09. This is an automated QA update, not release approval.
 
-The next engineering pass should prioritize a stable workspace/layout model and complete end-to-end tests for shapes, text, photo import, background removal, and transparent cropped PNG export. Prefer removing conflicting layout rules over appending more overrides.
+### Repository and deployment state
+
+- Public `main` remains V61 at `e7ef3c25317ccf15bcf617698db953a9dbeb5072`.
+- The last GitHub Pages deployment for that commit completed successfully on 2026-10-30: [deployment run](https://github.com/studio-gh/story-studio/actions/runs/41045565012).
+- PR #6 remains open as Draft, based on `main`, and has not been merged.
+- The V62 working branch remains `design/v62-editorial-identity`.
+
+### Automated evidence completed
+
+The latest browser regression, [run #230](https://github.com/studio-gh/story-studio/actions/runs/42648474564), passed on code commit `d294a53b1f92f0a8a4d9b715faf29c9a16947e4e`.
+
+The run verified:
+
+- Initial PT-BR language, switching to English, and switching back. It checked the editor heading, preview label, quick tools, paste, background removal, copy, and export labels.
+- Live text editing and the curved-text preview.
+- Mobile Chromium layouts at 390×844 and compact 390×460 viewport emulation. The simulated keyboard state kept the preview and text field visible.
+- Circular text preview and a downloaded circular PNG (936×992 px).
+- Arc text preview and a downloaded composite PNG (1036×764 px, 73,270 bytes), with transparent pixels and transparent outer corners.
+- A real download through the Export PNG button, with the expected filename and valid PNG signature.
+- Shape movement to the center and lower-right artboard boundary.
+- Photo-layer import, contextual controls, and layer ordering. The automated image fixture is a synthetic 32×32 PNG, not a photograph from a device.
+- Desktop home and editor screenshots at 1440×1000; the desktop home had three cards and no horizontal overflow.
+- No uncaught page errors in the tested Chromium flows.
+
+The canvas renderer for circular and arced text was corrected to follow the same path geometry as the live SVG preview. The generated circle and composite PNGs were opened and visually inspected; the output is cropped to the artwork bounds and retains transparency.
+
+The run produced 14 evidence files, including mobile/desktop screenshots and both downloaded PNGs. See the [workflow artifact](https://github.com/studio-gh/story-studio/actions/runs/42648474564).
+
+### Still required before release
+
+- Test on a physical Android device: real keyboard opening/closing, device safe areas, touch behavior, and selecting a photo from the gallery.
+- Import and edit a real photograph, including crop/resize/delete. The synthetic CI image does not prove the device gallery flow.
+- Test background removal end-to-end with a real photo, including progress, transparency, retry, and cutout editing.
+- Verify saved drafts survive leaving and reopening the editor.
+- Complete broader checks for copy/share, accessibility, high-resolution images, and edge cases.
+- Test iOS Safari before claiming broad mobile compatibility.
+- Visually verify the official published URL when browser access is available. The production URL remains on V61 and was not changed by this work.
+
+Playwright Chromium emulation is not a substitute for physical-device testing. Keep the release checkboxes open until the remaining manual checks are evidenced. V62 remains a Draft review build, not a release candidate.
