@@ -583,6 +583,25 @@ jobs:
           assert.ok(shapeEdgeState.top>=shapeEdgeState.stageTop-2&&shapeEdgeState.left>=shapeEdgeState.stageLeft-2,'Shape cannot escape above or left of the artboard');
           assert.ok(shapeEdgeState.bottom<=shapeEdgeState.stageBottom+2&&shapeEdgeState.right<=shapeEdgeState.stageRight+2,'Shape cannot escape below or right of the artboard');
 
+          // The edge-clamp regression intentionally touches the artboard boundary.
+          // Return the shape to the center before testing tight export cropping, so this
+          // export fixture has known transparent margins on all four sides.
+          const edgeShapeBox = await page.locator('#stage .layer.selected').boundingBox();
+          const exportStageBox = await page.locator('#stage').boundingBox();
+          assert.ok(edgeShapeBox && exportStageBox,'Shape and artboard must remain measurable before export fixture setup');
+          await page.mouse.move(edgeShapeBox.x+edgeShapeBox.width/2,edgeShapeBox.y+edgeShapeBox.height/2);
+          await page.mouse.down();
+          await page.mouse.move(exportStageBox.x+exportStageBox.width/2,exportStageBox.y+exportStageBox.height/2,{steps:12});
+          await page.mouse.up();
+          await page.waitForTimeout(100);
+          const exportShapeCenter = await page.evaluate(() => {
+            const l=typeof selected==='function'?selected():null;
+            return {type:l?.type,x:l?.x,y:l?.y};
+          });
+          assert.equal(exportShapeCenter.type,'shape','The export fixture must retain the shape layer');
+          assert.ok(Math.abs(exportShapeCenter.x-250)<5&&Math.abs(exportShapeCenter.y-(500*16/9/2))<5,
+            'The export fixture shape must be centered so crop bounds can be tested independently from edge clipping');
+
           await page.evaluate(() => document.querySelector('#v63PanelClose')?.click());
           await page.waitForFunction(() => document.querySelector('#create .panel').classList.contains('v63-visible'));
           await page.waitForFunction(() => getComputedStyle(document.querySelector('#layersPanelSection')).display !== 'none');
