@@ -752,6 +752,58 @@ jobs:
           await browser.close();
           NODE
 
+      - name: Verify autosaved draft recovery after reload
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import assert from 'node:assert/strict';
+
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext({
+            viewport: { width: 390, height: 844 },
+            isMobile: true,
+            hasTouch: true
+          });
+          const page = await context.newPage();
+          const errors = [];
+          page.on('pageerror', error => errors.push(error.message));
+
+          await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
+          await page.evaluate(() => {
+            window.show('create');
+            window.addText('Draft recovery check');
+            window.addShape('circle');
+          });
+          await page.waitForFunction(() => {
+            const raw = localStorage.getItem('stickerStudioDraft');
+            if (!raw) return false;
+            const draft = JSON.parse(raw);
+            return draft.length === 2 &&
+              draft.some(layer => layer.type === 'text' && layer.text === 'Draft recovery check') &&
+              draft.some(layer => layer.type === 'shape' && layer.shape === 'circle');
+          }, null, { timeout: 6000 });
+
+          await page.reload({ waitUntil: 'domcontentloaded' });
+          await page.waitForFunction(() => typeof window.show === 'function' && document.getElementById('stage'));
+          await page.evaluate(() => window.show('create'));
+          await page.waitForFunction(() => document.querySelectorAll('#stage .layer').length === 2);
+
+          const recovered = await page.evaluate(() => ({
+            layerCount: document.querySelectorAll('#stage .layer').length,
+            text: [...document.querySelectorAll('#stage .layer')].map(el => el.textContent.trim()).find(value => value.includes('Draft recovery check')) || null,
+            draftCount: JSON.parse(localStorage.getItem('stickerStudioDraft') || '[]').length,
+            historyIndex: typeof historyIndex !== 'undefined' ? historyIndex : null
+          }));
+          assert.equal(recovered.layerCount, 2, 'Both draft layers must be restored after reload');
+          assert.equal(recovered.text, 'Draft recovery check', 'The text layer must survive reload');
+          assert.equal(recovered.draftCount, 2, 'The saved draft must remain available after recovery');
+          assert.deepEqual(errors, [], 'Draft recovery must not create uncaught page errors');
+
+          await page.screenshot({ path: 'artifacts/v62-draft-recovery.png' });
+          console.log('DRAFT_RECOVERY_STATE:', JSON.stringify({ ...recovered, errors }));
+          await browser.close();
+          NODE
+
       - name: Upload browser screenshots and test report
         if: always()
         uses: actions/upload-artifact@v4
