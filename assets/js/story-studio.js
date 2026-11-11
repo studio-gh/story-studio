@@ -16,6 +16,26 @@ function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",
 function stateJSON(){return JSON.stringify(layers.map(l=>l.type==='image'?({...l,src:undefined}):l))}
 function fullDraftJSON(){return JSON.stringify(layers)}
 function saveDraft(){clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>{try{localStorage.setItem("stickerStudioDraft",fullDraftJSON());localStorage.setItem("stickerStudioDraftAt",Date.now())}catch(e){console.warn("Draft save skipped",e)}},900)}
+function restoreDraftIfAvailable(){
+  try{
+    const raw=localStorage.getItem("stickerStudioDraft");
+    if(!raw)return false;
+    const draft=JSON.parse(raw);
+    if(!Array.isArray(draft)||!draft.length)return false;
+    if(!draft.every(l=>l&&typeof l.id==="string"&&["text","shape","image"].includes(l.type)))return false;
+    layers=draft.map(l=>({...l}));
+    layers.forEach(l=>{
+      if(l.type==="image"&&l.assetId&&l.src)assetStore.set(l.assetId,l.src);
+    });
+    selectedId=layers[layers.length-1]?.id||null;
+    history=[stateJSON()];
+    historyIndex=0;
+    return true;
+  }catch(e){
+    console.warn("Draft recovery skipped",e);
+    return false;
+  }
+}
 function commitHistory(){const snap=stateJSON();if(history[historyIndex]===snap){updateHistoryUI();saveDraft();return}history=history.slice(0,historyIndex+1);history.push(snap);historyIndex=history.length-1;updateHistoryUI();saveDraft()}
 function updateHistoryUI(){if($('undoBtn'))$('undoBtn').disabled=historyIndex<=0;if($('redoBtn'))$('redoBtn').disabled=historyIndex>=history.length-1}
 function restoreState(s){layers=JSON.parse(s).map(l=>{if(l.type==='image'&&!l.src&&l.assetId)l.src=assetStore.get(l.assetId)||'';return l});selectedId=layers.length?layers[layers.length-1].id:null;renderEditor();updateHistoryUI();saveDraft()}
@@ -227,12 +247,12 @@ window.addEventListener('unhandledrejection',e=>{
 
 wireColors();
 try{
-  // Start with a blank canvas only when no recoverable draft exists.
-  // Keep an empty canvas on a fresh start. Existing saved compositions remain untouched.
-  // Autosaved drafts are retained as a recovery copy, not deleted on every boot.
-  layers=[];
-  selectedId=null;
+  // Recover the autosaved working draft when one exists; otherwise start clean.
+  // Image data URLs are restored to the asset map so undo/redo remains safe after reload.
+  const recoveredDraft=restoreDraftIfAvailable();
+  if(!recoveredDraft){layers=[];selectedId=null;}
   renderEditor();
+  if(recoveredDraft)updateHistoryUI();
   renderHome();renderSaved();
 }catch(e){
   console.error('Sticker Studio boot error:',e);
