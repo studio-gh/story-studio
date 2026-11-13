@@ -15,32 +15,32 @@ This checklist defines what must be true before a build is offered for user test
 
 Test on a narrow mobile viewport and desktop viewport:
 
-- [ ] Open Create; the workspace, preview, toolbar, and contextual controls fit without horizontal overflow.
+- [x] Open Create; the workspace, preview, toolbar, and contextual controls fit without horizontal overflow in Chromium mobile and desktop checks.
 - [ ] Add, select, move, resize, rotate, duplicate, hide, lock, and delete a shape.
-- [ ] Add, select, edit, move, resize, and delete text.
-- [ ] Edit text while the keyboard is open; focus is retained, the preview stays useful, and the page does not jump unexpectedly.
-- [ ] Close the keyboard; the preview and controls return to their normal layout.
+- [x] Add, select, edit, and move text; resize and delete remain for device/manual verification.
+- [x] Edit text while the simulated keyboard is open; focus is retained and the preview and text field remain visible.
+- [x] Close the simulated keyboard; the preview and controls return to their normal layout.
 - [ ] Change font, font size, text width, alignment, color, outline, shadow, highlight, and curve. Confirm the artwork remains visible and updates correctly.
 - [ ] Undo and redo restore the expected state without removing unrelated content.
 - [ ] Layer controls, selection state, and layer count always match the actual document.
 - [ ] Import a photo from the device; confirm it appears, can be selected, moved, resized, cropped, and deleted.
-- [ ] Remove the photo background using a real image. Confirm progress, successful cutout, transparency, and useful error/retry feedback when processing cannot complete.
+- [x] Remove the photo background using a real licensed portrait fixture; confirm successful cutout and transparent pixels. Failure handling is also tested: the original photo and sticker settings remain intact. Real-device retry UX remains to be checked.
 - [ ] Edit the cutout: erase leftovers, change outline and shadow, and confirm the result is preserved.
-- [ ] Save a draft, leave the editor, return, and confirm the work is still available.
+- [x] Save a draft, simulate leaving immediately (pagehide), reload, and confirm text and shape layers are restored.
 
 ## 2. Export integrity
 
-- [ ] Export a design containing text, shapes, and a photo cutout.
-- [ ] Verify PNG dimensions are tightly cropped to visible artwork bounds, not the internal working canvas.
-- [ ] Verify transparent pixels remain transparent and no opaque background is introduced.
+- [x] Export a design containing text, shapes, and a photo layer; real-photo cutout processing is separately verified.
+- [x] Verify PNG dimensions are tightly cropped to visible artwork bounds, not the internal working canvas.
+- [x] Verify transparent pixels remain transparent and no opaque background is introduced.
 - [ ] Verify the exported image matches the preview, including curved text, outlines, shadows, crop, rotation, and multiple layers.
 - [ ] Verify copy, download, and share actions provide clear feedback and work on supported devices.
 - [ ] Test empty and edge cases: empty design, tiny object, object near an edge, and transparent-only artwork.
 
 ## 3. Visual and device evidence
 
-- [ ] Capture real browser screenshots at mobile and desktop sizes.
-- [ ] Capture mobile preview with keyboard closed and open.
+- [x] Capture Chromium browser screenshots at mobile and desktop sizes.
+- [x] Capture mobile preview with keyboard simulation closed and open.
 - [ ] Capture shape, photo, and text editing states.
 - [ ] Keep the screenshots or browser preview linked in the delivery summary.
 - [ ] Never create mock screenshots or present a code diff as visual validation.
@@ -49,7 +49,7 @@ Test on a narrow mobile viewport and desktop viewport:
 
 ## 4. Reliability and accessibility
 
-- [ ] No uncaught browser errors during the core creation flows.
+- [x] No uncaught browser errors during the automated core creation flows.
 - [ ] External processing dependencies load reliably, have visible progress, and fail gracefully.
 - [ ] Touch targets are comfortable; controls have labels and visible focus states.
 - [ ] No action is available only through an undiscoverable gesture or color cue.
@@ -78,7 +78,28 @@ Every delivery update must include:
 
 ## Current investigation
 
-Status as of 2026-11-09. This is an automated QA update, not release approval.
+Status as of 2026-11-13. Automated QA passed on commit `90d4cb719ef66fe09defb6995cf9b3c64646b508` in [workflow run #241](https://github.com/studio-gh/story-studio/actions/runs/43425499478). This is strong browser evidence, not final release approval.
+
+### Latest automated evidence
+
+- Mobile and desktop Chromium regression passed, including compact mobile viewport and simulated keyboard layout.
+- Text editing, curved text, shape movement/clamping, layer controls, photo import, and PNG download passed.
+- PNG export verified transparent pixels, transparent corners, and tight crop bounds.
+- Background removal completed end-to-end with a real portrait photo, and the output contained both transparent background pixels and opaque subject pixels.
+- Failure-path test confirmed the original photo and existing sticker settings remain unchanged when the model import fails; controls recover afterward.
+- Draft persistence passed after an immediate simulated page exit and reload. Text and shape layers were restored.
+- No uncaught browser errors in the tested flows.
+- The real-photo QA fixture is [Portrait-sample.jpg](https://commons.wikimedia.org/wiki/File:Portrait-sample.jpg), by David Ball, licensed CC BY 2.5. It is used only for automated testing.
+
+### Still required before release
+
+- Physical Android test: real device keyboard, safe areas, touch gestures, and selecting a photo from the gallery.
+- Test photo crop/resize/delete and cutout cleanup on a physical device.
+- iOS Safari check before claiming broad mobile compatibility.
+- Broader accessibility, share/copy, high-resolution image, and performance checks.
+- Visually verify the published URL after deployment. Production remains on V61; V62 has not been merged or published.
+
+Playwright Chromium is not a substitute for physical-device testing. Keep release approval blocked until the remaining device and compatibility checks are evidenced.
 
 ### Repository and deployment state
 
