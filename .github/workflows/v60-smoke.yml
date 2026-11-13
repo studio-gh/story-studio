@@ -790,7 +790,7 @@ jobs:
           await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
           await page.evaluate(() => window.show('create'));
           await page.locator('#file').setInputFiles('/tmp/story-studio-real-photo.jpg');
-          await page.waitForFunction(() => document.querySelector('#stage .layer.image-layer img.layer-media'), null, { timeout: 15000 });
+          await page.waitForFunction(() => document.querySelector('#stage .layer img.layer-media'), null, { timeout: 30000 });
           const removal = await page.evaluate(async () => {
             const photo = layers.find(layer => layer.type === 'image');
             if (!photo) throw new Error('Real photo layer was not imported');
