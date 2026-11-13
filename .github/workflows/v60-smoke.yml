@@ -17,7 +17,7 @@ on:
 jobs:
   mobile-editor:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 18
     steps:
       - name: Check out the exact pull request commit
         uses: actions/checkout@v4
@@ -765,6 +765,54 @@ jobs:
 
           assert.deepEqual(errors, [], 'Page must not produce uncaught JavaScript errors');
           console.log(JSON.stringify({ result: 'PASS', exported, screenshots: 9, errors }, null, 2));
+          await browser.close();
+          NODE
+
+      - name: Download openly licensed real-photo fixture
+        run: |
+          mkdir -p artifacts
+          curl --fail --location --retry 3 --max-time 45 \\
+            'https://upload.wikimedia.org/wikipedia/commons/e/e3/Portrait-sample.jpg' \\
+            --output /tmp/story-studio-real-photo.jpg
+          file /tmp/story-studio-real-photo.jpg
+          test "$(stat -c%s /tmp/story-studio-real-photo.jpg)" -gt 10000
+
+      - name: Verify real-photo background removal and transparency
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import assert from 'node:assert/strict';
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+          const page = await context.newPage();
+          const errors = [];
+          page.on('pageerror', error => errors.push(error.message));
+          page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+          await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
+          await page.evaluate(() => window.show('create'));
+          await page.locator('#file').setInputFiles('/tmp/story-studio-real-photo.jpg');
+          await page.waitForFunction(() => document.querySelector('#stage .layer.image-layer img.layer-media'), null, { timeout: 15000 });
+          const removal = await page.evaluate(async () => {
+            const photo = layers.find(layer => layer.type === 'image');
+            if (!photo) throw new Error('Real photo layer was not imported');
+            const ok = await window.removeBackground();
+            if (!ok) return { ok: false, status: document.getElementById('status')?.textContent };
+            const image = await loadImg(photo.src);
+            const canvas = document.createElement('canvas');
+            canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(image, 0, 0);
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let transparent = 0, opaque = 0;
+            for (let i = 3; i < data.length; i += 4) { if (data[i] < 8) transparent++; if (data[i] > 240) opaque++; }
+            return { ok: true, width: canvas.width, height: canvas.height, transparent, opaque, mime: photo.name };
+          });
+          console.log('REAL_PHOTO_BACKGROUND_REMOVAL:', JSON.stringify(removal));
+          assert.equal(removal.ok, true, 'Background removal must complete with a real photo');
+          assert.ok(removal.transparent > 1000, 'The processed photo must contain transparent background pixels');
+          assert.ok(removal.opaque > 1000, 'The processed photo must retain opaque subject pixels');
+          assert.deepEqual(errors, [], 'Real-photo background removal must not produce browser errors');
+          await page.screenshot({ path: 'artifacts/v62-real-photo-cutout.png' });
           await browser.close();
           NODE
 
