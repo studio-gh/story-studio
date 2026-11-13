@@ -673,11 +673,12 @@ jobs:
           const removalFailure = await page.evaluate(async () => {
             const photo=layers.find(layer=>layer.type==='image');
             const originalSrc=photo.src;
+            const originalOutline=photo.stickerOutline??null;
             const result=await window.stickerize();
-            return {result:result??null,originalPreserved:photo.src===originalSrc,stickerOutline:photo.stickerOutline??null,buttonDisabled:document.getElementById('removeBgBtn').disabled};
+            return {result:result??null,originalPreserved:photo.src===originalSrc,outlineUnchanged:(photo.stickerOutline??null)===originalOutline,buttonDisabled:document.getElementById('removeBgBtn').disabled};
           });
           assert.equal(removalFailure.originalPreserved,true,'Failed background removal must preserve the original photo');
-          assert.equal(removalFailure.stickerOutline,null,'Failed background removal must not add a fake cutout outline');
+          assert.equal(removalFailure.outlineUnchanged,true,'Failed background removal must not change sticker styling');
           assert.equal(removalFailure.buttonDisabled,false,'Background removal controls must recover after failure');
           await page.unroute('https://esm.sh/@imgly/background-removal@1.7.0');
           const exportPhotoFixture = await page.evaluate(() => {
