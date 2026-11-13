@@ -772,9 +772,7 @@ jobs:
       - name: Download openly licensed real-photo fixture
         run: |
           mkdir -p artifacts
-          curl --fail --location --retry 3 --max-time 45 \\
-            'https://upload.wikimedia.org/wikipedia/commons/e/e3/Portrait-sample.jpg' \\
-            --output /tmp/story-studio-real-photo.jpg
+          curl --fail --location --retry 3 --max-time 45 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Portrait-sample.jpg' --output /tmp/story-studio-real-photo.jpg
           file /tmp/story-studio-real-photo.jpg
           test "$(stat -c%s /tmp/story-studio-real-photo.jpg)" -gt 10000
 
