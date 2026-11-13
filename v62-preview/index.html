@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFFCF4">
+<meta name="description" content="Faça seu Story se destacar. Crie conteúdo que as pessoas parem para ver, com textos marcantes, fotos e elementos gráficos.">
+<title>Story Studio — Faça seu Story se destacar</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Bebas+Neue&family=Archivo+Black&family=Space+Mono:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/story-studio.css">
+</head>
+<body>
+<div class="app">
+<header class="shell">
+<button class="logo" onclick="show('home')">STORY<span>•</span>STUDIO</button>
+<div class="header-tools"><button id="languageToggle" class="language-toggle" type="button" aria-label="Change language">EN / PT-BR</button><button class="round" onclick="show('saved')">♡</button></div>
+</header>
+
+<main class="shell">
+<section id="home" class="view active">
+<div class="hero home-create-hero">
+  <div class="eyebrow">YOUR STORY, YOUR STYLE</div>
+  <h1>Create your Story.<br><span class="headline-accent">Your way.</span></h1>
+  <p class="sub">Build Stories that look and feel like you. Combine expressive type, photo cutouts and bold graphic elements, then export your design and add it to your post.</p>
+  <div class="actions"><button class="btn" onclick="show('create')">Create your Story ↗</button></div>
+</div>
+<section class="home-quick-start" aria-labelledby="quickStartTitle">
+  <div class="home-section-heading"><div><div class="eyebrow">START WITH AN IDEA</div><h2 id="quickStartTitle">What will make your Story yours?</h2></div></div>
+  <div class="home-action-grid">
+    <button class="home-action-card" onclick="show('create');addText('')"><span class="home-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M12 6v14M8 20h8"/></svg></span><strong>Text</strong><span>Make a statement</span><i aria-hidden="true">↗</i></button>
+    <button class="home-action-card" onclick="show('create');document.getElementById('file').click()"><span class="home-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><strong>Photo</strong><span>Create a custom photo cutout</span><i aria-hidden="true">↗</i></button>
+    <button class="home-action-card" onclick="show('create');addShape('circle')"><span class="home-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="4"/><rect x="12" y="12" width="9" height="9" rx="1"/><path d="m16 3 5 5h-5z"/></svg></span><strong>Shapes</strong><span>Add a graphic twist</span><i aria-hidden="true">↗</i></button>
+  </div>
+</section>
+<section class="home-how-it-works" aria-label="How it works">
+  <div class="eyebrow">FROM IDEA TO STORY</div>
+  <div class="home-steps">
+    <div class="home-step"><span>01</span><strong>Build</strong></div>
+    <span class="home-step-arrow" aria-hidden="true">→</span>
+    <div class="home-step"><span>02</span><strong>Customize</strong></div>
+    <span class="home-step-arrow" aria-hidden="true">→</span>
+    <div class="home-step"><span>03</span><strong>Add to your Story</strong></div>
+  </div>
+</section>
+</section>
+
+<section id="create" class="view">
+<div class="editor-head"><h2>Create your Story.</h2><div class="editor-actions"><button id="undoBtn" class="small-btn" onclick="undo()" disabled aria-label="Undo">↶</button><button id="redoBtn" class="small-btn" onclick="redo()" disabled aria-label="Redo">↷</button><button id="copyStoryBtn" class="small-btn" onclick="copyPNG()" disabled>Copiar PNG</button><button id="exportStoryBtn" class="small-btn dark" onclick="exportPNG()" disabled>Export PNG</button></div></div>
+<nav class="creation-dock" aria-label="Adicionar ao Story">
+<button id="dockAddText" onclick="startTextEditing()" class="dock-primary"><span aria-hidden="true">T</span><b>Texto</b></button>
+<button id="dockAddPhoto" onclick="document.getElementById('file').click()"><span aria-hidden="true">＋</span><b>Foto</b></button>
+<button id="addShapeMenuToggle" type="button" onclick="toggleShapeMenu()" aria-haspopup="true" aria-expanded="false"><span aria-hidden="true">◇</span><b>Formas</b></button>
+</nav>
+<input id="file" type="file" accept="image/*" hidden onchange="handleFile(this.files[0])">
+<div class="workspace">
+<div class="stage-wrap"><div class="live-preview-label" style="width:min(100%,380px);margin:0 auto 5px;padding:0 3px;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:900;color:var(--muted)">Preview</div><div id="stage" class="stage" role="group" aria-label="Área de prévia e criação do gráfico"><div id="guideV" class="guide v" style="display:none"></div><div id="guideH" class="guide h" style="display:none"></div></div></div>
+<aside class="panel">
+<div class="panel-section">
+<div class="panel-title">Quick tools</div>
+<div class="tool-grid quick-tool-grid">
+<button class="tool" onclick="pasteFromClipboard()">Paste image</button>
+<button class="tool" id="removeBgBtn" onclick="removeBackground()" disabled>Remove background</button>
+<div id="bgProcessFeedback" role="status" aria-live="polite">
+ <div class="bgp-row"><span class="bgp-spinner" aria-hidden="true"></span><div><div id="bgpTitle" class="bgp-title">Removing background…</div><div id="bgpSub" class="bgp-sub">Keep this screen open. This can take a little while on your first cutout.</div></div></div>
+ <div class="bgp-track"><i id="bgpProgress"></i></div>
+</div>
+<button class="tool" onclick="stickerize()">✦ Cutout + outline</button>
+<button class="tool" onclick="newCanvas()">New canvas</button>
+<button class="tool" onclick="copyPNG()">Copy graphic</button>
+<button class="tool" onclick="sharePNG()">Share</button>
+</div>
+<div class="shape-menu-wrap"><button id="shapeMenuToggle" class="tool shape-menu-trigger" type="button" onclick="toggleShapeMenu()" aria-expanded="false">＋ Add shape</button>
+<div class="shape-grid" id="shapeOptionsMenu" hidden>
+<button class="shape-btn" onclick="addShape('circle');closeShapeMenu()"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="#ff961a"/></svg>Circle</button>
+<button class="shape-btn" onclick="addShape('square');closeShapeMenu()"><svg viewBox="0 0 40 40"><rect x="5" y="5" width="30" height="30" rx="2" fill="#151515"/></svg>Square</button>
+<button class="shape-btn" onclick="addShape('rectangle');closeShapeMenu()"><svg viewBox="0 0 40 40"><rect x="2" y="10" width="36" height="20" rx="1" fill="#ff961a"/></svg>Rectangle</button>
+<button class="shape-btn" onclick="addShape('blob');closeShapeMenu()"><svg viewBox="0 0 40 40"><path d="M7 11C11 3 18 8 22 6S33 8 34 16 30 23 32 29 21 36 15 32 5 30 7 23 2 17 7 11Z" fill="#ff961a"/></svg>Blob</button>
+<button class="shape-btn" onclick="addShape('rounded');closeShapeMenu()"><svg viewBox="0 0 40 40"><rect x="4" y="8" width="32" height="24" rx="8" fill="#ff961a"/></svg>Rounded</button>
+<button class="shape-btn" onclick="addShape('triangle');closeShapeMenu()"><svg viewBox="0 0 40 40"><path d="M20 4 L37 35 H3 Z" fill="#151515"/></svg>Triangle</button>
+<button class="shape-btn" onclick="addShape('star');closeShapeMenu()"><svg viewBox="0 0 40 40"><path d="M20 2 L25 14 L38 15 L28 24 L31 37 L20 30 L9 37 L12 24 L2 15 L15 14 Z" fill="#ff961a"/></svg>Star</button>
+<button class="shape-btn" onclick="addShape('speech');closeShapeMenu()"><svg viewBox="0 0 40 40"><path d="M5 5 H35 V28 H20 L10 36 V28 H5 Z" fill="#a95f49"/></svg>Bubble</button>
+</div></div>
+<div class="status" id="status">Add text or a photo from the toolbar above. Paste image imports an image from your clipboard.</div><div class="progress"><i id="progress"></i></div>
+</div>
+
+<div class="panel-section" id="selectionPanelSection">
+<div class="panel-title">Ajustes do elemento</div>
+<div id="shapeControls" class="panel-section" style="display:none">
+<div class="panel-title">Shape style</div>
+<div class="shape-style-grid">
+<button id="shapeFillBtn" class="tool on" onclick="setShapeFill(true)">● Fill</button>
+<button id="shapeOutlineBtn" class="tool" onclick="setShapeFill(false)">◯ Outline only</button>
+</div>
+<div class="field"><label>Outline width <span id="shapeStrokeVal">2</span></label><input id="shapeStroke" type="range" min="1" max="16" value="2" oninput="setShapeStroke(this.value)"></div>
+<div class="field"><label>Outline color</label><div class="custom-color"><input id="shapeStrokeHexInput" class="hex-input" type="text" value="#FF961A" maxlength="7" inputmode="text" spellcheck="false" aria-label="Outline color hex code" onchange="setShapeStrokeColorFromHex(this.value)" onkeydown="if(event.key==='Enter')this.blur()"><input id="shapeStrokeColor" class="native-color" type="color" value="#ff961a" onchange="setShapeStrokeColor(this.value)" aria-hidden="true" tabindex="-1"></div></div>
+</div>
+<div id="selectionControls" class="status">Select a layer on the canvas.</div>
+<div class="field"><label>Opacity <span id="opacityVal">100%</span></label><input id="opacity" type="range" min="0" max="100" value="100" oninput="setProp('opacity',this.value/100)"></div>
+<div class="field"><label>Scale <span id="scaleVal">100%</span></label><input id="scale" type="range" min="20" max="220" value="100" oninput="setScale(this.value/100)"></div>
+<div class="field"><label>Rotation <span id="rotationVal">0°</span></label><input id="rotation" type="range" min="-180" max="180" value="0" oninput="setProp('rotation',+this.value)"></div><div class="field"><label>Zoom <span id="zoomVal">100%</span></label><div class="zoom-controls"><button type="button" class="zoom-btn" onclick="adjustZoom(-0.1)">−</button><input id="zoom" type="range" min="25" max="300" value="100" oninput="setZoom(+this.value)"><button type="button" class="zoom-btn" onclick="adjustZoom(0.1)">+</button></div></div>
+<div class="field">
+<label>Color</label>
+<div class="custom-color color-picker-row">
+  <input id="colorHex" class="hex-input" type="text" value="#151515" maxlength="7" inputmode="text" spellcheck="false" aria-label="Hex color">
+  <input id="color" class="native-color" type="color" value="#151515" aria-hidden="true" tabindex="-1">
+  <button class="eyedrop-btn icon-eyedrop-btn" type="button" onclick="pickScreenColor()" aria-label="Pick a color from the design" title="Pick a color from the design"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6 4 4M4 20l4.2-1 9.9-9.9a2.8 2.8 0 0 0-4-4l-9.9 9.9L4 20Z"/><path d="m12 8 4 4"/></svg></button>
+</div>
+</div>
+</div>
+
+<div class="panel-section" id="imageControls" style="display:none">
+<div class="panel-title">Photo</div><div class="v66-photo-actions"></div>
+<div class="tool-grid" style="margin-bottom:8px">
+<button class="tool" id="eraseModeBtn" onclick="toggleEraseMode()">Erase leftovers</button>
+<button class="tool" id="eraseClearBtn" onclick="clearEraseMode()">Finish erasing</button>
+</div>
+<div class="field" id="eraserSizeWrap" style="display:none"><label>Brush size <span id="eraserSizeVal">24</span> px</label><input id="eraserSize" type="range" min="6" max="90" value="24" oninput="document.getElementById('eraserSizeVal').textContent=this.value"></div>
+<div class="crop-label" id="eraserHint" style="display:none">Paint over leftover pixels to erase them. Your changes update the cutout.</div>
+<div class="tool-grid">
+<button class="tool" onclick="fitImage()">Fit</button>
+<button class="tool" onclick="fillImage()">Fill</button>
+<button class="tool" onclick="applyCrop('1:1')">Crop 1:1</button>
+<button class="tool" onclick="applyCrop('4:5')">Crop 4:5</button>
+<button class="tool" onclick="applyCrop('9:16')">Crop 9:16</button>
+<button class="tool" onclick="applyCrop('16:9')">Crop 16:9</button>
+</div>
+<button class="tool" id="cropModeBtn" onclick="toggleCropMode()">Adjust crop on canvas</button><div class="crop-label" id="cropModeHint">Choose a crop ratio, then tap Adjust crop on canvas and drag the photo inside its frame.</div>
+<div class="field"><label>Crop horizontal <span id="cropXVal">50</span>%</label><input id="cropX" type="range" min="0" max="100" value="50" oninput="setCropPosition('x',+this.value)"></div>
+<div class="field"><label>Crop vertical <span id="cropYVal">50</span>%</label><input id="cropY" type="range" min="0" max="100" value="50" oninput="setCropPosition('y',+this.value)"></div>
+<div class="crop-label">Choose a crop ratio, then move the image inside the frame.</div>
+<div class="field"><label>Photo outline <span id="mediaOutlineVal">0</span></label><input id="mediaOutline" type="range" min="0" max="20" value="0" oninput="setImageProp('stickerOutline',+this.value)"></div>
+<div class="field"><label>Outline color</label><div class="custom-color"><input id="mediaOutlineHex" class="hex-input" type="text" value="#FFFFFF" maxlength="7" inputmode="text" spellcheck="false" aria-label="Photo outline hex code" onchange="setColorControl('mediaOutlineColor',this.value)" onkeydown="if(event.key==='Enter')this.blur()"><input id="mediaOutlineColor" class="native-color" type="color" value="#ffffff" tabindex="-1"><button class="eyedrop-btn" onclick="pickScreenColor('mediaOutlineColor')">Eyedropper</button></div></div>
+<div class="field"><label>Photo shadow <span id="mediaShadowVal">0</span></label><input id="mediaShadow" type="range" min="0" max="30" value="0" oninput="setImageProp('stickerShadow',+this.value)"></div>
+</div>
+
+<div class="panel-section" id="textControls">
+<div class="panel-title">Text</div>
+<div class="field" id="textEntryField"><label for="textValue">Your text <span id="textCharCount" class="text-char-count">0 / 120</span></label><textarea id="textValue" rows="2" maxlength="120" placeholder="Type your text here…" oninput="setText(this.value)"></textarea><div class="status" style="margin-top:6px">Your text updates on the preview as you type.</div></div>
+<div class="field"><label>Font</label><div class="fonts">
+<button class="font-btn active" style="font-family:'DM Sans'" onclick="setFont('DM Sans',this)">DM</button>
+<button class="font-btn" style="font-family:'Bebas Neue'" onclick="setFont('Bebas Neue',this)">Bebas</button>
+<button class="font-btn" style="font-family:'Archivo Black'" onclick="setFont('Archivo Black',this)">Archivo</button>
+<button class="font-btn" style="font-family:'Space Mono'" onclick="setFont('Space Mono',this)">Mono</button>
+<button class="font-btn" style="font-family:'Playfair Display'" onclick="setFont('Playfair Display',this)">Serif</button>
+<button class="font-btn" style="font-family:'Permanent Marker'" onclick="setFont('Permanent Marker',this)">Marker</button>
+</div></div>
+<div class="text-sizing-row">
+  <div class="field"><label><span>Size</span><span id="fontSizeVal">54</span></label><input id="fontSize" type="range" min="12" max="140" value="54" oninput="setProp('fontSize',+this.value)"></div>
+  <div class="field"><label><span>Text width</span><span id="textWidthVal">300</span></label><input id="textWidth" type="range" min="80" max="480" value="300" oninput="setTextBoxWidth(+this.value)"></div>
+</div>
+<div class="status text-width-hint">Adjust size and width to control how your text wraps.</div>
+<div class="field"><label>Alignment</label><div class="tool-grid align-grid icon-align-grid">
+<button class="tool align-btn" data-align="left" aria-label="Align left" title="Align left" onclick="setTextAlign('left')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 9h10M4 13h16M4 17h10M4 21h16" /></svg></button>
+<button class="tool align-btn" data-align="center" aria-label="Align center" title="Align center" onclick="setTextAlign('center')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 9h10M4 13h16M7 17h10M4 21h16" /></svg></button>
+<button class="tool align-btn" data-align="right" aria-label="Align right" title="Align right" onclick="setTextAlign('right')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M10 9h10M4 13h16M10 17h10M4 21h16" /></svg></button>
+</div></div>
+</div>
+
+<div class="panel-section" id="presetControls" style="display:none">
+<div class="panel-title">Text looks</div>
+<div class="visual-preset-grid">
+<button class="visual-preset preset-meme" aria-label="Meme style" title="Meme style" onclick="applyTextPreset('meme')"><span class="preset-art">WOW!</span><span class="preset-caption">Meme</span></button>
+<button class="visual-preset preset-editorial" aria-label="Editorial style" title="Editorial style" onclick="applyTextPreset('editorial')"><span class="preset-art">Story</span><span class="preset-caption">Editorial</span></button>
+<button class="visual-preset preset-impact" aria-label="Impact style" title="Impact style" onclick="applyTextPreset('impact')"><span class="preset-art">BAM!</span><span class="preset-caption">Impact</span></button>
+<button class="visual-preset preset-bubble" aria-label="Bubble style" title="Bubble style" onclick="applyTextPreset('bubble')"><span class="preset-art">Hey!</span><span class="preset-caption">Bubble</span></button>
+<button class="visual-preset preset-marker" aria-label="Marker style" title="Marker style" onclick="applyTextPreset('marker')"><span class="preset-art">Note</span><span class="preset-caption">Marker</span></button>
+<button class="visual-preset preset-clean" aria-label="Clean style" title="Clean style" onclick="applyTextPreset('clean')"><span class="preset-art">hello</span><span class="preset-caption">Clean</span></button>
+</div></div>
+
+<div class="panel-section" id="textEffectsControls" style="display:none">
+<div class="panel-title">Text design</div>
+<div class="row">
+<div class="field"><label>Letter spacing <span id="letterVal">0</span></label><input id="letterSpacing" type="range" min="-10" max="20" value="0" oninput="setTextProp('letterSpacing',+this.value)"></div>
+<div class="field"><label>Line height <span id="lineVal">1.0</span></label><input id="lineHeight" type="range" min="60" max="180" value="100" oninput="setTextProp('lineHeight',+this.value/100)"></div>
+</div>
+
+<div class="field"><label>Effects</label>
+<div class="tool-grid">
+<button id="outlineToggle" class="tool" onclick="toggleEffect('outline')">Outline</button>
+<button id="shadowToggle" class="tool" onclick="toggleEffect('shadow')">Drop shadow</button>
+<button id="curveToggle" class="tool" onclick="toggleEffect('curve')">Curved text</button>
+<button id="highlightToggle" class="tool" onclick="toggleEffect('highlight')">Highlight</button>
+</div></div>
+
+<div id="outlineControls" style="display:none">
+<div class="row">
+<div class="field"><label>Width <span id="outlineWidthVal">3</span></label><input id="outlineWidth" type="range" min="1" max="14" value="3" oninput="setTextProp('outlineWidth',+this.value)"></div>
+<div class="field"><label>Outline color</label><div class="custom-color">
+<input id="outlineColorHex" class="hex-input" type="text" value="#ffffff" maxlength="7" inputmode="text" spellcheck="false" aria-label="Text outline hex code" onchange="setColorControl('outlineColor',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+<input id="outlineColor" class="native-color" type="color" value="#ffffff" aria-hidden="true" tabindex="-1">
+<button class="eyedrop-btn" type="button" onclick="pickScreenColor('outlineColor')">Eyedropper</button>
+</div></div>
+</div></div>
+
+<div id="shadowControls" style="display:none">
+<div class="row">
+<div class="field"><label>Blur <span id="shadowBlurVal">8</span></label><input id="shadowBlur" type="range" min="0" max="30" value="8" oninput="setTextProp('shadowBlur',+this.value)"></div>
+<div class="field"><label>Offset <span id="shadowOffsetVal">4</span></label><input id="shadowOffset" type="range" min="-20" max="20" value="4" oninput="setTextProp('shadowOffset',+this.value)"></div>
+</div>
+<div class="field"><label>Shadow color</label><div class="custom-color">
+<input id="shadowColorHex" class="hex-input" type="text" value="#000000" maxlength="7" inputmode="text" spellcheck="false" aria-label="Shadow hex code" onchange="setColorControl('shadowColor',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+<input id="shadowColor" class="native-color" type="color" value="#000000" aria-hidden="true" tabindex="-1">
+<button class="eyedrop-btn" type="button" onclick="pickScreenColor('shadowColor')">Eyedropper</button>
+</div></div>
+</div>
+
+<div id="curveControls" style="display:none">
+<div class="field"><label>Mode</label><div class="tool-grid"><button type="button" id="curveArcMode" class="tool on" onclick="setCurveMode('arc')">Arc</button><button type="button" id="curveCircleMode" class="tool" onclick="setCurveMode('circle')">Circle</button></div></div>
+<div class="row">
+<div class="field"><label>Curve <span id="curveVal">45</span></label><input id="curveAmount" type="range" min="-100" max="100" value="45" oninput="setTextProp('curve',+this.value)"></div>
+<div class="field" id="curveRadiusField"><label>Radius <span id="curveRadiusVal">130</span></label><input id="curveRadius" type="range" min="70" max="260" value="130" oninput="setTextProp('curveRadius',+this.value)"></div>
+</div>
+<div class="field"><label>Direction</label><div class="tool-grid"><button type="button" id="curveClockwise" class="tool on" onclick="setCurveDirection('clockwise')">Clockwise</button><button type="button" id="curveCounterclockwise" class="tool" onclick="setCurveDirection('counterclockwise')">Counterclockwise</button></div></div>
+</div>
+
+<div id="highlightControls" style="display:none">
+<div class="row">
+<div class="field"><label>Padding <span id="highlightPadVal">10</span></label><input id="highlightPad" type="range" min="0" max="30" value="10" oninput="setTextProp('highlightPadding',+this.value)"></div>
+<div class="field"><label>Radius <span id="highlightRadiusVal">8</span></label><input id="highlightRadius" type="range" min="0" max="30" value="8" oninput="setTextProp('highlightRadius',+this.value)"></div>
+</div>
+<div class="field"><label>Highlight color</label><div class="custom-color">
+<input id="highlightColorHex" class="hex-input" type="text" value="#ffffff" maxlength="7" inputmode="text" spellcheck="false" aria-label="Highlight hex code" onchange="setColorControl('highlightColor',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+<input id="highlightColor" class="native-color" type="color" value="#ffffff" aria-hidden="true" tabindex="-1">
+<button class="eyedrop-btn" type="button" onclick="pickScreenColor('highlightColor')">Eyedropper</button>
+</div></div>
+<div class="field"><label>Opacity <span id="highlightOpacityVal">85%</span></label><input id="highlightOpacity" type="range" min="0" max="100" value="85" oninput="setTextProp('highlightOpacity',+this.value/100)"></div>
+</div>
+</div>
+
+<div class="panel-section" id="layersPanelSection">
+<div class="panel-title">Camadas</div>
+<div class="layer-tools"><button class="mini-action" onclick="duplicateSelected()">Duplicate</button><button class="mini-action" onclick="toggleSelectedVisibility()">Hide</button><button class="mini-action" onclick="toggleSelectedLock()">Lock</button></div>
+<div id="layers" class="layers"></div>
+</div>
+</aside>
+</div>
+</section>
+
+<section id="saved" class="view">
+<div class="hero" style="padding-bottom:24px"><div class="eyebrow">Your library</div><h2>Saved designs.</h2><p class="sub">Your designs are saved on this device.</p></div><div id="savedGrid" class="grid"></div>
+</section>
+</main>
+
+<nav class="bottom"><div class="nav-inner">
+<button class="nav-btn active" data-view="home" onclick="show('home')"><span class="nav-icon">⌂</span>Home</button>
+<button class="nav-btn" data-view="create" onclick="show('create')"><span class="nav-icon">＋</span>Create</button>
+
+<button class="nav-btn" data-view="saved" onclick="show('saved')"><span class="nav-icon">♡</span>Saved</button>
+</div></nav>
+<div id="toast" class="toast"></div>
+</div>
+
+  <script src="assets/js/story-studio.js" defer></script>
+</body>
+</html>
