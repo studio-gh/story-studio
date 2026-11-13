@@ -839,6 +839,8 @@ jobs:
             window.addText('Draft recovery check');
             window.addShape('circle');
           });
+          // Simulate leaving immediately after the last edit; pagehide must flush the debounce timer.
+          await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
           await page.waitForFunction(() => {
             const raw = localStorage.getItem('stickerStudioDraft');
             if (!raw) return false;
