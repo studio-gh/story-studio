@@ -806,7 +806,7 @@ jobs:
 
           const recovered = await page.evaluate(() => ({
             layerCount: document.querySelectorAll('#stage .layer').length,
-            text: [...document.querySelectorAll('#stage .layer')].map(el => el.textContent.trim()).find(value => value.includes('Draft recovery check')) || null,
+            text: [...document.querySelectorAll('#stage .layer')].map(el => { const copy=el.cloneNode(true); copy.querySelectorAll('button,[aria-label]').forEach(node=>node.remove()); return copy.textContent.trim(); }).find(value => value.includes('Draft recovery check')) || null,
             draftCount: JSON.parse(localStorage.getItem('stickerStudioDraft') || '[]').length,
             historyIndex: typeof historyIndex !== 'undefined' ? historyIndex : null
           }));
