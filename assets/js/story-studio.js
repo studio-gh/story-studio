@@ -15,7 +15,10 @@ const $=id=>document.getElementById(id);
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function stateJSON(){return JSON.stringify(layers.map(l=>l.type==='image'?({...l,src:undefined}):l))}
 function fullDraftJSON(){return JSON.stringify(layers)}
-function saveDraft(){clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>{try{localStorage.setItem("stickerStudioDraft",fullDraftJSON());localStorage.setItem("stickerStudioDraftAt",Date.now())}catch(e){console.warn("Draft save skipped",e)}},900)}
+function persistDraftNow(){clearTimeout(autosaveTimer);autosaveTimer=null;try{localStorage.setItem("stickerStudioDraft",fullDraftJSON());localStorage.setItem("stickerStudioDraftAt",Date.now())}catch(e){console.warn("Draft save skipped",e)}}
+function saveDraft(){clearTimeout(autosaveTimer);autosaveTimer=setTimeout(persistDraftNow,900)}
+window.addEventListener("pagehide",persistDraftNow);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")persistDraftNow()});
 function restoreDraftIfAvailable(){
   try{
     const raw=localStorage.getItem("stickerStudioDraft");
