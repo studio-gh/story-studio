@@ -1052,11 +1052,14 @@ function closeShapeMenu(){
     stageWrap.style.setProperty('max-height','430px','important');
     stageWrap.style.setProperty('padding','10px','important');
     stage.style.setProperty('display','block','important');
-    stage.style.setProperty('flex','1 1 auto','important');
-    stage.style.setProperty('height','auto','important');
+    stage.style.setProperty('flex','0 1 auto','important');
+    stage.style.setProperty('width','auto','important');
+    stage.style.setProperty('height','100%','important');
+    stage.style.setProperty('min-width','0','important');
     stage.style.setProperty('min-height','0','important');
-    stage.style.setProperty('max-height','none','important');
-    stage.style.setProperty('aspect-ratio','auto','important');
+    stage.style.setProperty('max-width','100%','important');
+    stage.style.setProperty('max-height','100%','important');
+    stage.style.setProperty('aspect-ratio','9 / 16','important');
   }else if(stageWrap.dataset.v63ShapePreview==='true'&&!keyboardOpen){
     ['display','flex-direction','align-items','justify-content','box-sizing','height','min-height','max-height','padding'].forEach(prop=>stageWrap.style.removeProperty(prop));
     ['display','flex','height','min-height','max-height','aspect-ratio'].forEach(prop=>stage.style.removeProperty(prop));
