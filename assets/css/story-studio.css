@@ -3888,3 +3888,19 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     margin:0 auto!important;
   }
 }
+
+
+/* V85: preserve the logical 9:16 artboard geometry in every responsive workspace.
+   Layer coordinates use one shared scale unit, so the stage must never stretch on X/Y. */
+#create.view.active .workspace .stage-wrap #stage.stage{
+  flex:0 1 auto!important;width:auto!important;height:100%!important;
+  min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;
+  aspect-ratio:9 / 16!important;box-sizing:border-box!important;
+}
+@media(max-width:799px){
+  #create.view.active .workspace .stage-wrap #stage.stage,
+  html body.keyboard-open #create.view.active .workspace .stage-wrap #stage.stage{
+    flex:0 1 auto!important;height:100%!important;width:auto!important;
+    max-width:100%!important;max-height:100%!important;aspect-ratio:9 / 16!important;
+  }
+}

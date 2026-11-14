@@ -310,7 +310,7 @@ jobs:
           assert.equal(stageVisible,true,'Canvas must have visible geometry on editor entry');
           let rect = await stage.boundingBox();
           assert.ok(rect && rect.width > 100 && rect.height > 170, 'Mobile canvas must be visible and usable');
-          assert.ok(rect.height / rect.width > 0.25 && rect.height / rect.width < 4, 'Visible preview must adapt to the available workspace instead of forcing a 9:16 frame');
+          assert.ok(Math.abs(rect.height / rect.width - 16/9) < 0.035, 'Logical artboard must preserve its 9:16 geometry while fitting the responsive workspace');
           await page.screenshot({ path: 'artifacts/v62-mobile-empty-canvas.png' });
 
           await page.evaluate(() => window.addText('Story Studio V61'));
@@ -320,10 +320,11 @@ jobs:
           const expandedPreview = await page.evaluate(() => {
             const stage=document.querySelector('#stage'),layer=stage.querySelector('.layer');
             const sr=stage.getBoundingClientRect(),lr=layer.getBoundingClientRect();
-            const dockEl=document.querySelector('.creation-dock'),dockRect=dockEl.getBoundingClientRect();return {stageHeight:sr.height,stageWidth:sr.width,layerVisible:lr.width>0&&lr.height>0&&lr.bottom>sr.top&&lr.top<sr.bottom,copyExists:!!document.querySelector('#copyStoryBtn'),copyActionCount:document.querySelectorAll('#create .editor-actions button[id*="copy"]').length,duplicateCopyAction:!!document.querySelector('#copyPNGTopBtn'),dockVisible:getComputedStyle(dockEl).display!=='none'&&dockRect.width>300,dock:dockRect};
+            const dockEl=document.querySelector('.creation-dock'),dockRect=dockEl.getBoundingClientRect();return {stageHeight:sr.height,stageWidth:sr.width,stageRatio:sr.height/sr.width,layerVisible:lr.width>0&&lr.height>0&&lr.bottom>sr.top&&lr.top<sr.bottom,copyExists:!!document.querySelector('#copyStoryBtn'),copyActionCount:document.querySelectorAll('#create .editor-actions button[id*="copy"]').length,duplicateCopyAction:!!document.querySelector('#copyPNGTopBtn'),dockVisible:getComputedStyle(dockEl).display!=='none'&&dockRect.width>300,dock:dockRect};
           });
           assert.ok(expandedPreview.stageHeight > 180 && expandedPreview.stageHeight < 520, 'Preview must remain useful without consuming the full mobile workspace');
           assert.ok(expandedPreview.dock.bottom <= 844, 'Creation actions must remain within the mobile viewport');
+          assert.ok(Math.abs(expandedPreview.stageRatio-16/9)<0.035,'Text editing must preserve the logical 9:16 artboard ratio');
           assert.equal(expandedPreview.layerVisible,true,'New text must remain visible inside the expanded preview');
           assert.equal(expandedPreview.copyExists,true,'Copy PNG must be available beside Export PNG');
           assert.equal(expandedPreview.copyActionCount,1,'The editor must show exactly one Copy PNG action');
@@ -404,6 +405,8 @@ jobs:
           console.log('KEYBOARD_LAYOUT_STATE:', JSON.stringify({ ...keyboardState, ...keyboardLayout }));
           assert.equal(keyboardState.keyboardOpen,true,'Keyboard emulation must remain active for the compact layout checks');
           assert.ok(keyboardState.canvasBottom-keyboardState.canvasTop>=230,'Keyboard preview must remain large enough to read the composition');
+           const keyboardStage=await page.locator('#stage').boundingBox();
+           assert.ok(Math.abs(keyboardStage.height/keyboardStage.width-16/9)<0.035,'Keyboard-open preview must preserve the logical 9:16 artboard ratio');
           assert.ok(keyboardState.canvasTop >= -2 && keyboardState.canvasBottom < keyboardState.viewport * 0.68, 'Compact layout emulation should keep the canvas in the top region');
           assert.ok(keyboardState.inputTop >= keyboardState.canvasBottom - 1 && keyboardState.inputTop < keyboardState.viewport, 'Text input should remain below the preview and in the visible area');
           assert.ok(keyboardState.panelHeight >= 120, 'Keyboard panel must retain enough height for editing controls');
