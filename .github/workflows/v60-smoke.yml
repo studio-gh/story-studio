@@ -554,11 +554,12 @@ jobs:
             const el=document.querySelector('#stage .layer.shape-layer.selected');
             const stage=document.querySelector('#stage');
             const er=el?.getBoundingClientRect(), sr=stage?.getBoundingClientRect();
-            return {selected:!!el,shapeWidth:er?.width||0,shapeHeight:er?.height||0,stageWidth:sr?.width||0,stageHeight:sr?.height||0};
+            return {selected:!!el,shapeWidth:er?.width||0,shapeHeight:er?.height||0,stageWidth:sr?.width||0,stageHeight:sr?.height||0,stageRatio:(sr?.height||0)/(sr?.width||1)};
           });
           console.log('SHAPE_READY_STATE:',JSON.stringify(shapeReady));
           assert.ok(shapeReady.selected && shapeReady.shapeWidth>20 && shapeReady.shapeHeight>20 && shapeReady.stageWidth>100 && shapeReady.stageHeight>180,
             'Shape must be selected and canvas geometry measurable before pointer gesture');
+          assert.ok(Math.abs(shapeReady.stageRatio-16/9)<0.035,'Shape editing must preserve the logical 9:16 artboard ratio');
           // Keep shape gesture coverage independent from text-panel/layer-management state.
           await page.locator('#stage .layer.shape-layer').last().click({force:true});
           await page.waitForFunction(() => document.querySelector('#stage .layer.shape-layer.selected'));
@@ -758,7 +759,8 @@ jobs:
           await desktop.waitForFunction(() => document.querySelector('#create')?.classList.contains('active'));
           assert.equal(await desktop.locator('#create .creation-dock').evaluate(el => getComputedStyle(el).display), 'none', 'Mobile creation dock must be hidden on desktop');
           const desktopStage = await desktop.locator('#stage').boundingBox();
-          assert.ok(desktopStage && desktopStage.width>500 && desktopStage.height>350, 'Desktop preview must fill the workspace while the export is content-cropped');
+          assert.ok(desktopStage && desktopStage.width>200 && desktopStage.height>350, 'Desktop preview must remain large while preserving its portrait artboard ratio');
+          assert.ok(Math.abs(desktopStage.height/desktopStage.width-16/9)<0.035, 'Desktop artboard must preserve the logical 9:16 ratio');
           assert.equal(await desktop.locator('#selectionControls').evaluate(el => getComputedStyle(el.closest('.panel-section')).display), 'none', 'Desktop selected-layer controls must be hidden on an empty canvas');
           await desktop.evaluate(() => window.scrollTo(0,0));
           await desktop.screenshot({ path: 'artifacts/v62-desktop-empty-canvas.png' });
