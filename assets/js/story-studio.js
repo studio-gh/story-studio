@@ -1116,7 +1116,7 @@ function closeShapeMenu(){
  }
  const originalAddShape=window.addShape;
  if(typeof originalAddShape==='function'){
-  window.addShape=function(){const result=originalAddShape.apply(this,arguments);sync();return result};
+  window.addShape=function(){const result=originalAddShape.apply(this,arguments);sync();requestAnimationFrame(()=>{if(typeof window.renderEditor==='function')window.renderEditor()});return result};
  }
  document.getElementById('v63PanelClose').addEventListener('click',()=>{
   if(typeof selectedId!=='undefined')selectedId=null;
