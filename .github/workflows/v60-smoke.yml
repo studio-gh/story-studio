@@ -320,6 +320,9 @@ jobs:
           await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Text selected · drag to move');
           await languageButton.click();
           await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Texto selecionado · arraste para mover');
+          // Language controls take focus away from the text field; restore it before measuring the active typing layout.
+          await page.locator('#textValue').focus();
+          await page.waitForFunction(() => document.activeElement?.id === 'textValue' && document.body.classList.contains('v67-text-editing'));
           assert.equal(await page.locator('#textValue').inputValue(), 'Story Studio V61', 'New text must be retained in input');
           assert.ok(await page.locator('#stage .layer').count() === 1, 'Adding text must create a layer');
           const expandedPreview = await page.evaluate(() => {
