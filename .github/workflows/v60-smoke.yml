@@ -315,6 +315,11 @@ jobs:
 
           await page.evaluate(() => window.addText('Story Studio V61'));
           await page.waitForTimeout(150);
+          await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Texto selecionado · arraste para mover');
+          await languageButton.click();
+          await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Text selected · drag to move');
+          await languageButton.click();
+          await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Texto selecionado · arraste para mover');
           assert.equal(await page.locator('#textValue').inputValue(), 'Story Studio V61', 'New text must be retained in input');
           assert.ok(await page.locator('#stage .layer').count() === 1, 'Adding text must create a layer');
           const expandedPreview = await page.evaluate(() => {
@@ -502,6 +507,13 @@ jobs:
           await page.screenshot({ path: 'artifacts/v62-mobile-curved-text.png' });
 
           await page.evaluate(() => { window.addShape('circle'); window.v60SetPanel(true,'shape'); });
+          await page.waitForFunction(() => {
+            const el=document.querySelector('#stage .layer.shape-layer.selected');
+            const stage=document.querySelector('#stage');
+            const er=el?.getBoundingClientRect(),sr=stage?.getBoundingClientRect();
+            return !!el && er.width>20 && er.height>20 && sr.width>100 && sr.height>180 && Math.abs(sr.height/sr.width-16/9)<0.035;
+          }, null, {timeout:5000});
+          await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Forma selecionada · arraste para mover');
           assert.equal(await page.locator('#stage .layer').count(), 2, 'Adding a shape must create a second layer');
           const shapeControlsState = await page.locator('#shapeControls').evaluate(el => ({display:getComputedStyle(el).display,inline:el.style.display,hidden:el.hidden,parent:getComputedStyle(el.closest('.panel-section')).display}));
           console.log('SHAPE_CONTROLS_STATE:', JSON.stringify(shapeControlsState));
@@ -663,6 +675,11 @@ jobs:
           });
           await page.waitForFunction(() => document.querySelectorAll('#stage .layer').length === 3);
           await page.evaluate(() => window.v60SetPanel(true,'photo'));
+          await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Foto selecionada · arraste para mover');
+          await page.locator('#languageToggle').click();
+          await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Photo selected · drag to move');
+          await page.locator('#languageToggle').click();
+          await page.waitForFunction(() => document.getElementById('selectionControls')?.textContent.trim() === 'Foto selecionada · arraste para mover');
           const photoControlsState = await page.locator('#imageControls').evaluate(el => ({display:getComputedStyle(el).display,inline:el.style.display,hidden:el.hidden,parent:getComputedStyle(el.closest('.panel-section')).display}));
           console.log('PHOTO_CONTROLS_STATE:', JSON.stringify(photoControlsState));
           assert.equal(photoControlsState.display, 'block', 'Photo controls must appear after a photo is imported');
