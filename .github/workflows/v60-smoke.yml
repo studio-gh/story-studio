@@ -522,14 +522,32 @@ jobs:
             const svg=document.querySelector('#stage .layer svg');
             const path=svg?.querySelector('defs path')?.getAttribute('d')||'';
             const textPath=svg?.querySelector('textPath');
-            return {path,text:textPath?.textContent||'',textLength:Number(textPath?.getAttribute('textLength')||0),lengthAdjust:textPath?.getAttribute('lengthAdjust')||'',width:Number(svg?.getAttribute('width')||0),height:Number(svg?.getAttribute('height')||0),arcSelected:document.getElementById('curveArcMode')?.classList.contains('on')};
+            const arcButton=document.getElementById('curveArcMode');
+            const circleButton=document.getElementById('curveCircleMode');
+            return {
+              path,text:textPath?.textContent||'',
+              textLength:Number(textPath?.getAttribute('textLength')||0),
+              lengthAdjust:textPath?.getAttribute('lengthAdjust')||'',
+              width:Number(svg?.getAttribute('width')||0),
+              height:Number(svg?.getAttribute('height')||0),
+              arcSelected:arcButton?.classList.contains('on'),
+              circleSelected:circleButton?.classList.contains('on'),
+              selectedCurveMode:typeof selected==='function'?selected()?.curveMode:null,
+              arcBackground:arcButton?getComputedStyle(arcButton).backgroundColor:'',
+              circleBackground:circleButton?getComputedStyle(circleButton).backgroundColor:''
+            };
           });
+          console.log('ARC_MODE_VISUAL_STATE:',JSON.stringify(arcGeometry));
           assert.equal((arcGeometry.path.match(/ A /g)||[]).length,1,'Arc text must use a single open curve rather than a closed circle');
           assert.equal(arcGeometry.text,'Story Studio V61','Arc text must retain the full string');
           assert.ok(arcGeometry.textLength>0,'Arc text must fit a measured path length so no characters are clipped');
           assert.equal(arcGeometry.lengthAdjust,'spacingAndGlyphs','Arc text must scale the full string to its available path');
           assert.ok(arcGeometry.width>0&&arcGeometry.height>0,'Arc preview must have a valid SVG artboard');
-          assert.equal(arcGeometry.arcSelected,true,'Arc mode must be visibly selected in the controls');
+          assert.equal(arcGeometry.selectedCurveMode,'arc','Selected text layer must be in arc mode');
+          assert.equal(arcGeometry.arcSelected,true,'Arc mode must be selected in the controls');
+          assert.equal(arcGeometry.circleSelected,false,'Circle mode must be unselected while arc mode is active');
+          assert.notEqual(arcGeometry.arcBackground,arcGeometry.circleBackground,'Arc and circle controls must have visibly different selected states');
+          await page.waitForTimeout(250); // Let the selected-state transition finish before capturing visual evidence.
           await page.screenshot({path:'artifacts/v62-mobile-arc-text.png',fullPage:true});
 
           const exported = await page.evaluate(async () => {
