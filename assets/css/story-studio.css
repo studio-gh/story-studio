@@ -3908,8 +3908,6 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
 
 /* V62: keep mobile feedback in the editor flow instead of covering controls. */
 @media(max-width:799px){
-  .editor-head.has-mobile-toast{flex-wrap:wrap}
-  .editor-head>.toast,
   #create .panel>.toast{
     position:static!important;
     display:none;
@@ -3923,9 +3921,7 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     box-shadow:none!important;
     pointer-events:none;
     align-self:stretch;
-    flex:1 0 100%;
   }
-  .editor-head>.toast.show,
   #create .panel>.toast.show{
     display:block;
     opacity:1;
