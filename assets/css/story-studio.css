@@ -3904,3 +3904,30 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     max-width:100%!important;max-height:100%!important;aspect-ratio:9 / 16!important;
   }
 }
+
+
+/* V62: keep mobile feedback in the editor flow instead of covering controls. */
+@media(max-width:799px){
+  .editor-head{flex-wrap:wrap}
+  .editor-head>.toast,
+  #create .panel>.toast{
+    position:static!important;
+    display:none;
+    width:100%;
+    max-width:none!important;
+    margin:0!important;
+    padding:9px 12px!important;
+    transform:none!important;
+    border-radius:10px!important;
+    text-align:center!important;
+    box-shadow:none!important;
+    pointer-events:none;
+    align-self:stretch;
+  }
+  .editor-head>.toast.show,
+  #create .panel>.toast.show{
+    display:block;
+    opacity:1;
+    transform:none!important;
+  }
+}
