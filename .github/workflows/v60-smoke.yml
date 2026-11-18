@@ -341,21 +341,32 @@ jobs:
           assert.equal(expandedPreview.duplicateCopyAction,false,'No duplicate Copy PNG action may be injected at runtime');
           assert.ok(Math.abs((expandedPreview.dock.left+expandedPreview.dock.right)/2-195)<3,'Creation actions must be centered in the dock');
 
-          rect = await stage.boundingBox();
-          const layerRect = await page.locator('#stage .layer').boundingBox();
-          assert.ok(layerRect, 'Text layer must render on canvas');
-          const centerRatio = (layerRect.y + layerRect.height / 2 - rect.y) / rect.height;
+          await page.waitForFunction(() => {
+            const stage=document.querySelector('#stage'),layer=stage?.querySelector('.layer');
+            if(!stage||!layer)return false;
+            const sr=stage.getBoundingClientRect(),lr=layer.getBoundingClientRect();
+            return sr.width>0&&sr.height>0&&lr.width>0&&lr.height>0;
+          });
           const textLayerState = await page.evaluate(() => {
             const stage = document.querySelector('#stage');
-            const layer = document.querySelector('#stage .layer');
+            const layer = stage?.querySelector('.layer');
+            if(!stage||!layer)return null;
+            const sr=stage.getBoundingClientRect(),lr=layer.getBoundingClientRect();
             return {
-              stageWidth: stage.getBoundingClientRect().width,
-              stageHeight: stage.getBoundingClientRect().height,
-              layerLeft: layer.style.left,
-              layerTop: layer.style.top,
-              layerTransform: layer.style.transform
+              stage:{x:sr.x,y:sr.y,width:sr.width,height:sr.height},
+              layer:{x:lr.x,y:lr.y,width:lr.width,height:lr.height},
+              centerRatio:(lr.y+lr.height/2-sr.y)/sr.height,
+              stageWidth:sr.width,
+              stageHeight:sr.height,
+              layerLeft:layer.style.left,
+              layerTop:layer.style.top,
+              layerTransform:layer.style.transform
             };
           });
+          assert.ok(textLayerState,'Text layer must render on canvas');
+          rect=textLayerState.stage;
+          const layerRect=textLayerState.layer;
+          const centerRatio=textLayerState.centerRatio;
           console.log('TEXT_LAYER_GEOMETRY:', JSON.stringify({ stage: rect, layer: layerRect, centerRatio, ...textLayerState }));
           assert.ok(centerRatio > 0.42 && centerRatio < 0.58, 'New text must stay centered after the mobile preview resizes for editing');
           await page.locator('#textValue').fill('Prévia em tempo real');
