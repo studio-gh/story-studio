@@ -464,6 +464,27 @@ jobs:
           const circleBytes = await readFile(circleDownloadPath);
           assert.ok(circleBytes.length>1000,'Circular text PNG must contain rendered artwork');
           await circleDownload.saveAs('artifacts/story-studio-circle-export.png');
+          await page.waitForFunction(() => document.getElementById('toast')?.classList.contains('show'));
+          const exportFeedback = await page.evaluate(() => {
+            const toast=document.getElementById('toast');
+            const head=document.querySelector('#create .editor-head');
+            const panel=document.querySelector('#create .panel');
+            const stage=document.querySelector('#create .stage-wrap');
+            const rect=toast.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+            return {
+              text:toast.textContent.trim(),
+              parent:toast.parentElement===head?'editor-head':toast.parentElement===panel?'panel':'other',
+              position:getComputedStyle(toast).position,
+              visible:rect.width>0&&rect.height>0,
+              toastBottom:rect.bottom,
+              stageTop:stageRect.top
+            };
+          });
+          console.log('MOBILE_EXPORT_FEEDBACK_STATE:',JSON.stringify(exportFeedback));
+          assert.equal(exportFeedback.parent,'editor-head','Mobile export feedback must stay inside the editor header');
+          assert.equal(exportFeedback.position,'static','Mobile export feedback must participate in layout, not float over controls');
+          assert.equal(exportFeedback.visible,true,'Mobile export feedback must remain visible');
+          assert.ok(exportFeedback.toastBottom<=exportFeedback.stageTop,'Mobile export feedback must not overlap the artwork preview or editing controls');
           console.log('CIRCULAR_PNG_DOWNLOAD_STATE:',JSON.stringify({filename:circleDownload.suggestedFilename(),bytes:circleBytes.length,signature:Array.from(circleBytes.subarray(0,8))}));
           const curvePanelState = await page.evaluate(() => {
             const preview = document.querySelector('#stage-wrap') || document.querySelector('#create .stage-wrap');
