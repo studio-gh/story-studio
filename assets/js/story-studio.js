@@ -242,21 +242,15 @@ function toast(t){
  const e=$('toast'),create=$('create'),app=document.querySelector('.app');
  const mobile=!!(window.matchMedia&&window.matchMedia('(max-width:799px)').matches);
  const createActive=!!(create&&create.classList.contains('active'));
- const target=mobile&&createActive
-  ? (document.body.classList.contains('keyboard-open')?create.querySelector('.panel'):create.querySelector('.editor-head'))
-  : app;
- const previous=e.parentElement;
- if(previous?.classList.contains('editor-head'))previous.classList.remove('has-mobile-toast');
- if(target&&e.parentElement!==target)target.appendChild(e);
- if(target?.classList.contains('editor-head'))target.classList.add('has-mobile-toast');
- e.classList.toggle('inline-mobile-toast',!!(mobile&&createActive&&target));
+ const target=mobile&&createActive?create.querySelector('.panel'):app;
+ if(target&&target!==app)target.insertBefore(e,target.firstChild);
+ else if(app&&e.parentElement!==app)app.appendChild(e);
+ e.classList.toggle('inline-mobile-toast',!!(mobile&&createActive&&target&&target!==app));
  e.textContent=t;e.setAttribute('role','status');e.setAttribute('aria-live','polite');
  e.classList.add('show');
  clearTimeout(e._toastTimer);
  e._toastTimer=setTimeout(()=>{
   e.classList.remove('show','inline-mobile-toast');
-  const parent=e.parentElement;
-  if(parent?.classList.contains('editor-head'))parent.classList.remove('has-mobile-toast');
   if(app&&e.parentElement!==app)app.appendChild(e);
  },1700);
 }
