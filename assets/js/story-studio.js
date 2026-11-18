@@ -238,7 +238,23 @@ function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onloa
 window.exportPNG=async()=>{if(!layers.length){toast('Add something first');return}finishAllContinuousEdits();const status=$('status');if(status)status.textContent='Exporting transparent PNG…';const blob=await renderBlob();const a=document.createElement('a');a.download='story-studio.png';a.href=URL.createObjectURL(blob);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('PNG exported · transparent + tightly cropped');if(status)status.textContent='PNG ready to add to your Stories or posts.'}
 window.copyPNG=async()=>{try{finishAllContinuousEdits();const blob=await renderBlob();if(!navigator.clipboard?.write)throw 0;await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);toast('Graphic copied')}catch(e){toast('Copy is not supported here. Use Export PNG.')}}
 window.sharePNG=async()=>{try{finishAllContinuousEdits();const blob=await renderBlob();const file=new File([blob],'sticker-studio.png',{type:'image/png'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({files:[file],title:'Story Studio'});toast('Shared')}else{await copyPNG()}}catch(e){if(e?.name!=='AbortError')toast('Share is not available here')}}
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1700)}
+function toast(t){
+ const e=$('toast'),create=$('create'),app=document.querySelector('.app');
+ const mobile=!!(window.matchMedia&&window.matchMedia('(max-width:799px)').matches);
+ const createActive=!!(create&&create.classList.contains('active'));
+ const target=mobile&&createActive
+  ? (document.body.classList.contains('keyboard-open')?create.querySelector('.panel'):create.querySelector('.editor-head'))
+  : app;
+ if(target&&e.parentElement!==target)target.appendChild(e);
+ e.classList.toggle('inline-mobile-toast',!!(mobile&&createActive&&target));
+ e.textContent=t;e.setAttribute('role','status');e.setAttribute('aria-live','polite');
+ e.classList.add('show');
+ clearTimeout(e._toastTimer);
+ e._toastTimer=setTimeout(()=>{
+  e.classList.remove('show','inline-mobile-toast');
+  if(app&&e.parentElement!==app)app.appendChild(e);
+ },1700);
+}
 window.addEventListener('error',e=>{
   console.error('Story Studio runtime error:',e.error||e.message);
   const status=$('status');
