@@ -33,6 +33,7 @@ Test on a narrow mobile viewport and desktop viewport:
 - [x] Export a design containing text, shapes, and a photo layer; real-photo cutout processing is separately verified.
 - [x] Verify PNG dimensions are tightly cropped to visible artwork bounds, not the internal working canvas.
 - [x] Verify transparent pixels remain transparent and no opaque background is introduced.
+- [x] On mobile, export feedback stays in the editor panel flow and does not cover the artwork controls.
 - [ ] Verify the exported image matches the preview, including curved text, outlines, shadows, crop, rotation, and multiple layers.
 - [ ] Verify copy, download, and share actions provide clear feedback and work on supported devices.
 - [ ] Test empty and edge cases: empty design, tiny object, object near an edge, and transparent-only artwork.
@@ -41,7 +42,8 @@ Test on a narrow mobile viewport and desktop viewport:
 
 - [x] Capture Chromium browser screenshots at mobile and desktop sizes.
 - [x] Capture mobile preview with keyboard simulation closed and open.
-- [ ] Capture shape, photo, and text editing states.
+- [x] Capture arc and circle selection states after the UI transition; assert the active and inactive mode buttons.
+- [x] Capture shape, photo, and text editing states.
 - [ ] Keep the screenshots or browser preview linked in the delivery summary.
 - [ ] Never create mock screenshots or present a code diff as visual validation.
 - [ ] If browser automation or real-browser access is unavailable, explicitly state "Visual validation not performed" and do not call the change complete.
@@ -78,9 +80,20 @@ Every delivery update must include:
 
 ## Current investigation
 
-Status as of 2026-11-13. Automated QA passed on commit `90d4cb719ef66fe09defb6995cf9b3c64646b508` in [workflow run #241](https://github.com/studio-gh/story-studio/actions/runs/43425499478). This is strong browser evidence, not final release approval.
+Status as of 2026-11-18. Latest automated QA passed on commit `d9e4d2f5daf9ac8317b335a18b22f98fbbb05b66` in [workflow run #258](https://github.com/studio-gh/story-studio/actions/runs/44340209091). This is strong browser evidence, not final release approval.
 
-### Latest automated evidence
+### Latest automated evidence (2026-11-18)
+
+- [Workflow run #258](https://github.com/studio-gh/story-studio/actions/runs/44340209091) passed on the exact PR #6 head commit `d9e4d2f5daf9ac8317b335a18b22f98fbbb05b66`; all 13 workflow steps completed successfully.
+- The mobile export confirmation now sits inside the editor panel flow, before the first visible control section. The browser test checks its actual position and confirms it does not cover the editing controls.
+- Arc and circle mode are verified separately. The test confirms `curveMode === "arc"`, Arc selected, Circle unselected, and captures the screenshot after the selected-state transition.
+- PT-BR default and PT-BR ↔ EN editor labels, live text editing, compact mobile keyboard emulation, text geometry, circular text, arc text, shape geometry, photo layer, and desktop home/editor states passed.
+- Real-photo background removal completed with the licensed portrait fixture at 667 × 834 px. The processed result contained 132,720 transparent pixels and 388,855 opaque subject pixels.
+- Draft recovery passed after immediate simulated page exit and reload: 2 layers restored (text and shape), with no browser errors. Photo-layer recovery remains untested.
+- Circular PNG: 936 × 992 px, 74,620 bytes. Composite PNG: 1,036 × 764 px, 73,270 bytes; 382,580 fully transparent pixels, 408,576 visible pixels above the alpha threshold, and all four corners transparent. Both downloaded files were opened and inspected.
+- The 16-file evidence artifact is available at [workflow artifact #14442783611](https://github.com/studio-gh/story-studio/actions/runs/44340209091/artifacts/14442783611).
+
+### Previous automated evidence (2026-11-13)
 
 - Mobile and desktop Chromium regression passed, including compact mobile viewport and simulated keyboard layout.
 - Text editing, curved text, shape movement/clamping, layer controls, photo import, and PNG download passed.
@@ -103,10 +116,11 @@ Playwright Chromium is not a substitute for physical-device testing. Keep releas
 
 ### Repository and deployment state
 
-- Public `main` remains V61 at `e7ef3c25317ccf15bcf617698db953a9dbeb5072`.
-- The last GitHub Pages deployment for that commit completed successfully on 2026-10-30: [deployment run](https://github.com/studio-gh/story-studio/actions/runs/41045565012).
-- PR #6 remains open as Draft, based on `main`, and has not been merged.
-- The V62 working branch remains `design/v62-editorial-identity`.
+- The production root remains V61. `main` is now two commits beyond the V61 release commit because PR #9 added and updated six files under `/v62-preview/`.
+- The root `index.html` and `manifest.json` blob SHAs are identical to those at V61 commit `e7ef3c25317ccf15bcf617698db953a9dbeb5072`; the two commits changed only the isolated `/v62-preview/` files. This extra route is a process deviation and must not be expanded or removed without explicit approval.
+- PR #6 remains open as Draft and has not been merged. Its working branch is `design/v62-editorial-identity`, current head `d9e4d2f5daf9ac8317b335a18b22f98fbbb05b66`.
+- The V62 branch is two commits behind the current `main` tip because of the preview-only commits. Do not update the branch automatically; that would bring the preview route into the PR diff.
+- The last confirmed GitHub Pages production deployment remains the V61 deployment on 2026-10-30: [deployment run](https://github.com/studio-gh/story-studio/actions/runs/41045565012). The official URL was not visually verified in this session.
 
 ### Automated evidence completed
 
