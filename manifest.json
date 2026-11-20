@@ -3,7 +3,7 @@
   "short_name": "Story Studio",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#f4f1eb",
-  "theme_color": "#f4f1eb",
+  "background_color": "#FFFCF4",
+  "theme_color": "#FFFCF4",
   "description": "Create expressive, original Stories. Create your Story. Your way."
 }
