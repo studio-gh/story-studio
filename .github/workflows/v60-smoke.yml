@@ -943,6 +943,91 @@ jobs:
           await browser.close();
           NODE
 
+      - name: Verify autosaved photo layer recovery after reload
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import assert from 'node:assert/strict';
+
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext({
+            viewport: { width: 390, height: 844 },
+            isMobile: true,
+            hasTouch: true
+          });
+          const page = await context.newPage();
+          const errors = [];
+          page.on('pageerror', error => errors.push(error.message));
+
+          await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
+          await page.evaluate(() => window.show('create'));
+          await page.locator('#file').setInputFiles('/tmp/story-studio-real-photo.jpg');
+          await page.waitForFunction(() => {
+            const image = document.querySelector('#stage .layer img.layer-media');
+            return image && image.complete && image.naturalWidth > 0;
+          }, null, { timeout: 30000 });
+
+          const before = await page.evaluate(() => {
+            const photo = layers.find(layer => layer.type === 'image');
+            const image = document.querySelector('#stage .layer img.layer-media');
+            if (!photo || !image) throw new Error('Imported photo layer is missing');
+            return {
+              id: photo.id,
+              assetId: photo.assetId,
+              name: photo.name,
+              srcLength: photo.src?.length || 0,
+              naturalWidth: image.naturalWidth,
+              naturalHeight: image.naturalHeight
+            };
+          });
+          assert.ok(before.srcLength > 1000, 'Photo source must contain persisted image data');
+          assert.equal(before.naturalWidth, 667, 'Imported photo width must be preserved');
+          assert.equal(before.naturalHeight, 834, 'Imported photo height must be preserved');
+
+          await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+          await page.waitForFunction(() => {
+            const draft = JSON.parse(localStorage.getItem('stickerStudioDraft') || '[]');
+            const photo = draft.find(layer => layer.type === 'image');
+            return photo && photo.src?.startsWith('data:image/') && photo.src.length > 1000;
+          }, null, { timeout: 6000 });
+
+          await page.reload({ waitUntil: 'domcontentloaded' });
+          await page.waitForFunction(() => typeof window.show === 'function' && document.getElementById('stage'));
+          await page.evaluate(() => window.show('create'));
+          await page.waitForFunction(() => {
+            const image = document.querySelector('#stage .layer img.layer-media');
+            return image && image.complete && image.naturalWidth === 667 && image.naturalHeight === 834;
+          }, null, { timeout: 10000 });
+
+          const after = await page.evaluate(() => {
+            const photo = layers.find(layer => layer.type === 'image');
+            const image = document.querySelector('#stage .layer img.layer-media');
+            const saved = JSON.parse(localStorage.getItem('stickerStudioDraft') || '[]')
+              .find(layer => layer.type === 'image');
+            return {
+              id: photo?.id,
+              assetId: photo?.assetId,
+              name: photo?.name,
+              srcLength: photo?.src?.length || 0,
+              savedSrcLength: saved?.src?.length || 0,
+              naturalWidth: image?.naturalWidth || 0,
+              naturalHeight: image?.naturalHeight || 0,
+              layerCount: document.querySelectorAll('#stage .layer').length
+            };
+          });
+
+          assert.equal(after.id, before.id, 'Recovered photo must retain its layer identity');
+          assert.equal(after.assetId, before.assetId, 'Recovered photo must retain its asset identity');
+          assert.equal(after.srcLength, before.srcLength, 'Recovered photo must retain its full image data');
+          assert.equal(after.savedSrcLength, before.srcLength, 'Persisted photo source must remain available after reload');
+          assert.equal(after.layerCount, 1, 'The recovered photo must be the only layer in this test draft');
+          assert.deepEqual(errors, [], 'Photo recovery must not create uncaught browser errors');
+
+          await page.screenshot({ path: 'artifacts/v62-photo-draft-recovery.png' });
+          console.log('PHOTO_DRAFT_RECOVERY_STATE:', JSON.stringify({ before, after, errors }));
+          await browser.close();
+          NODE
+
       - name: Upload browser screenshots and test report
         if: always()
         uses: actions/upload-artifact@v4
