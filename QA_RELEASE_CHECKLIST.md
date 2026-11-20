@@ -81,7 +81,7 @@ Every delivery update must include:
 
 ## Current investigation
 
-Status as of 2026-11-20. Latest product/browser QA passed on commit `d03e83cf604f1aa0c93ba3d443eadb6d07cbb98b` in [workflow run #260](https://github.com/studio-gh/story-studio/actions/runs/44763376599). The current PR head is documentation-only commit `c0c174a6dacd8ad7f3bf9443b93e7816ecef8ce5`; it was not a new browser-test run. This is strong browser evidence, not final release approval.
+Status as of 2026-11-20. Latest product/browser QA passed on commit `d03e83cf604f1aa0c93ba3d443eadb6d07cbb98b` in [workflow run #260](https://github.com/studio-gh/story-studio/actions/runs/44763376599). The current PR head is documentation-only commit `71dbf32c1729a60d8a5e8c9dfeb0b7b4a8464bea`; it was not a new browser-test run. This is strong browser evidence, not final release approval.
 
 ### Latest automated evidence (2026-11-20)
 
@@ -129,7 +129,7 @@ Playwright Chromium is not a substitute for physical-device testing. Keep releas
 
 - The production root remains V61. `main` is now two commits beyond the V61 release commit because PR #9 added and updated six files under `/v62-preview/`.
 - The root `index.html` and `manifest.json` blob SHAs are identical to those at V61 commit `e7ef3c25317ccf15bcf617698db953a9dbeb5072`; the two commits changed only the isolated `/v62-preview/` files. This extra route is a process deviation and must not be expanded or removed without explicit approval.
-- PR #6 remains open as Draft and has not been merged. Its working branch is `design/v62-editorial-identity`, current head `c0c174a6dacd8ad7f3bf9443b93e7816ecef8ce5` (documentation-only; product/browser test commit `d03e83cf604f1aa0c93ba3d443eadb6d07cbb98b`).
+- PR #6 remains open as Draft and has not been merged. Its working branch is `design/v62-editorial-identity`, current head `71dbf32c1729a60d8a5e8c9dfeb0b7b4a8464bea` (documentation-only; product/browser test commit `d03e83cf604f1aa0c93ba3d443eadb6d07cbb98b`).
 - The V62 branch is two commits behind the current `main` tip because of the preview-only commits. Do not update the branch automatically; that would bring the preview route into the PR diff.
 - The last confirmed GitHub Pages production deployment remains the V61 deployment on 2026-10-30: [deployment run](https://github.com/studio-gh/story-studio/actions/runs/41045565012). The official URL was not visually verified in this session.
 
