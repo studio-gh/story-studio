@@ -27,6 +27,7 @@ Test on a narrow mobile viewport and desktop viewport:
 - [x] Remove the photo background using a real licensed portrait fixture; confirm successful cutout and transparent pixels. Failure handling is also tested: the original photo and sticker settings remain intact. Real-device retry UX remains to be checked.
 - [ ] Edit the cutout: erase leftovers, change outline and shadow, and confirm the result is preserved.
 - [x] Save a draft, simulate leaving immediately (pagehide), reload, and confirm text and shape layers are restored.
+- [x] Save a real photo layer, simulate immediate exit, reload, and confirm the same layer/asset identities and decoded image dimensions are restored.
 
 ## 2. Export integrity
 
@@ -81,6 +82,16 @@ Every delivery update must include:
 ## Current investigation
 
 Status as of 2026-11-18. Latest automated QA passed on commit `d9e4d2f5daf9ac8317b335a18b22f98fbbb05b66` in [workflow run #258](https://github.com/studio-gh/story-studio/actions/runs/44340209091). This is strong browser evidence, not final release approval.
+
+### Latest automated evidence (2026-11-20)
+
+- [Workflow run #260](https://github.com/studio-gh/story-studio/actions/runs/44763376599) passed on the exact PR #6 head commit `d03e83cf604f1aa0c93ba3d443eadb6d07cbb98b`; all 14 workflow steps completed successfully.
+- Added a dedicated real-photo draft recovery test. It imports the openly licensed 667 × 834 px portrait, flushes the draft on simulated page exit, reloads, and confirms the same layer ID and asset ID return with the same 62,743-character data URL and a fully decoded 667 × 834 image. The recovered document contains exactly one photo layer and no uncaught page errors.
+- The existing text + shape recovery test also passed: 2 layers restored, text content retained, and no uncaught page errors.
+- Real-photo background removal passed again at 667 × 834 px, with 132,720 transparent pixels and 388,855 opaque subject pixels.
+- The circular PNG downloaded as `story-studio.png` at 936 × 992 px / 74,620 bytes. The composite PNG downloaded at 1,036 × 764 px / 73,270 bytes, with 382,580 fully transparent pixels, 408,576 opaque pixels, and four transparent corners. Both PNG files were opened and inspected; their SHA-256 hashes match the previous run #259 outputs byte-for-byte.
+- The 17-file evidence artifact is available at [workflow artifact #14643290024](https://github.com/studio-gh/story-studio/actions/runs/44763376599/artifacts/14643290024). The new photo recovery screenshot is `v62-photo-draft-recovery.png`.
+- This remains Chromium evidence. The compact keyboard is simulated; physical Android keyboard/safe-area/gallery checks and iOS Safari are still pending. The workflow asserts safe-area CSS declarations exist, but that is not a physical-device verification.
 
 ### Latest automated evidence (2026-11-18)
 
