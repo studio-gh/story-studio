@@ -185,7 +185,27 @@ Product and browser-test commit: `32223969809b0c3b8eca6a67f2630d41c03f6fcd` on `
 - Physical Android verification: real keyboard opening/closing, device safe areas, touch gestures, and photo selection from the device gallery.
 - On a physical device, verify photo crop/resize/delete and cutout-edge cleanup.
 - iOS Safari compatibility check.
-- Recover and export a composition containing a real recovered photograph; current real-photo recovery and mixed-layer PNG export are separate test flows.
+- [x] Automated Chromium: recovered a real 667×834 px photograph, combined it with text and a shape, and exported it. A with/without-photo pixel comparison confirmed 354,312 pixels contributed by the photograph. Physical-device gallery, crop/resize/delete, and cutout cleanup remain pending.
+- Broader preview-versus-export comparison for outlines, shadows, crop, rotation, and multi-layer artwork.
+- Broader accessibility, copy/share, high-resolution image, performance, and edge-case checks.
+- Open and visually verify the official GitHub Pages URL after an approved production deployment. The official URL was not accessible from the current browser/network environment during this session; no live-page verification is claimed.
+
+Chromium's simulated keyboard and safe-area CSS are not physical-device proof. PR #6 remains Draft and unmerged. No merge, production deploy, or change to `main` or the official URL was performed.
+
+### Latest automated evidence (2026-11-23 — run #287)
+
+- [GitHub Actions run #287](https://github.com/studio-gh/story-studio/actions/runs/45222521810) completed successfully on test commit `452b4514c570ed93370160881da011f54fa7a8d8`; the `mobile-editor` job completed all substantive steps.
+- The photo-recovery test now continues after reload: it composes the recovered real 667×834 px portrait with a text layer and an orange circle, then downloads a PNG through the editor's Export button.
+- The test renders the same composition once with the photo visible and once with that layer hidden. Both renders retain identical crop dimensions (1,108×1,988 px); the photo contributes 354,312 changed/opaque pixels. This proves the real photo is present in the rendered artwork, rather than merely present in the layer list.
+- The downloaded file is a valid PNG, 650,705 bytes. I opened the PNG and its preview screenshot; the portrait, headline and orange shape are all visibly present. The artifact contains 21 files, including `v62-real-photo-recovery-export-preview.png` and `story-studio-real-photo-recovery-export.png`: [artifact #14840239707](https://github.com/studio-gh/story-studio/actions/runs/45222521810/artifacts/14840239707).
+- Photo recovery after reload still preserves the same layer ID, asset ID, 62,743-character image data URL and decoded 667×834 dimensions. Text/shape recovery and real-photo background removal also passed.
+- This closes the automated real-photo-recovery-to-PNG flow. The earlier generic composite test still uses a small synthetic fixture; the new dedicated test is the evidence for real-photo export.
+
+### Still required before release (rechecked 2026-11-23)
+
+- Physical Android verification: real keyboard opening/closing, device safe areas, touch gestures, and photo selection from the device gallery.
+- On a physical device, verify photo crop/resize/delete and cutout-edge cleanup.
+- iOS Safari compatibility check.
 - Broader preview-versus-export comparison for outlines, shadows, crop, rotation, and multi-layer artwork.
 - Broader accessibility, copy/share, high-resolution image, performance, and edge-case checks.
 - Open and visually verify the official GitHub Pages URL after an approved production deployment. The official URL was not accessible from the current browser/network environment during this session; no live-page verification is claimed.
