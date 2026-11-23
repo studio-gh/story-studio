@@ -1023,6 +1023,7 @@ jobs:
           node --input-type=module <<'NODE'
           import { chromium } from 'playwright';
           import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
 
           const browser = await chromium.launch({ headless: true });
           const context = await browser.newContext({
@@ -1100,6 +1101,92 @@ jobs:
 
           await page.screenshot({ path: 'artifacts/v62-photo-draft-recovery.png' });
           console.log('PHOTO_DRAFT_RECOVERY_STATE:', JSON.stringify({ before, after, errors }));
+
+          // Export the recovered real photograph together with text and a shape.
+          // The text and shape define the crop bounds so the with/without-photo canvases
+          // have identical dimensions; pixel differences then prove that the photo itself
+          // contributes visible pixels to the exported artwork.
+          const photoExportFixture = await page.evaluate(() => {
+            const photo = layers.find(layer => layer.type === 'image');
+            if (!photo) return null;
+            photo.x = 250; photo.y = 460; photo.scale = 0.72;
+            photo.opacity = 1; photo.visible = true; photo.fit = 'contain';
+            const text = {
+              id:newId(),type:'text',text:'PHOTO EXPORT',fontFamily:'DM Sans',fontSize:52,
+              textWidth:440,color:'#151515',opacity:1,scale:1,rotation:0,x:250,y:150,
+              letterSpacing:0,lineHeight:1,textAlign:'center',outline:false,outlineWidth:3,
+              outlineColor:'#ffffff',shadow:false,shadowBlur:8,shadowOffset:4,shadowColor:'#000000',
+              curve:0,highlight:false,highlightPadding:10,highlightRadius:8,
+              highlightColor:'#ffffff',highlightOpacity:.85,visible:true,locked:false
+            };
+            const shape = {
+              id:newId(),type:'shape',shape:'circle',name:'Circle',x:250,y:760,w:150,h:150,
+              scale:1,rotation:0,opacity:1,color:'#ff961a',strokeColor:'#ff961a',
+              strokeWidth:0,noFill:false,visible:true,locked:false
+            };
+            layers.push(text,shape);
+            selectedId = shape.id;
+            renderEditor();
+            return {photoId:photo.id,order:layers.map(layer=>layer.type),photo:{x:photo.x,y:photo.y,scale:photo.scale}};
+          });
+          assert.ok(photoExportFixture,'Recovered real photo must be present in the export composition');
+          assert.deepEqual(photoExportFixture.order,['image','text','shape'],'Real photo must remain behind text and shape');
+
+          await page.waitForFunction(() => {
+            const img=document.querySelector('#stage .layer img.layer-media');
+            return img&&img.complete&&img.naturalWidth===667&&img.naturalHeight===834;
+          }, null, {timeout:10000});
+          await page.screenshot({path:'artifacts/v62-real-photo-recovery-export-preview.png'});
+
+          const photoContribution = await page.evaluate(async () => {
+            const photo=layers.find(layer=>layer.type==='image');
+            const renderPixels=async()=>{
+              const blob=await window.renderBlob();
+              const bitmap=await createImageBitmap(blob);
+              const canvas=document.createElement('canvas');
+              canvas.width=bitmap.width;canvas.height=bitmap.height;
+              const ctx=canvas.getContext('2d',{willReadFrequently:true});
+              ctx.drawImage(bitmap,0,0);
+              const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+              bitmap.close?.();
+              return {width:canvas.width,height:canvas.height,pixels};
+            };
+            const withPhoto=await renderPixels();
+            let withoutPhoto;
+            photo.visible=false;
+            try { withoutPhoto=await renderPixels(); }
+            finally { photo.visible=true; }
+            if(withPhoto.width!==withoutPhoto.width||withPhoto.height!==withoutPhoto.height){
+              return {sameDimensions:false,widthWith:withPhoto.width,heightWith:withPhoto.height,widthWithout:withoutPhoto.width,heightWithout:withoutPhoto.height,diffPixels:0,photoContributionPixels:0};
+            }
+            let diffPixels=0,photoContributionPixels=0;
+            for(let i=0;i<withPhoto.pixels.length;i+=4){
+              const changed=Math.abs(withPhoto.pixels[i]-withoutPhoto.pixels[i])>8||
+                Math.abs(withPhoto.pixels[i+1]-withoutPhoto.pixels[i+1])>8||
+                Math.abs(withPhoto.pixels[i+2]-withoutPhoto.pixels[i+2])>8||
+                Math.abs(withPhoto.pixels[i+3]-withoutPhoto.pixels[i+3])>8;
+              if(changed)diffPixels++;
+              if(withPhoto.pixels[i+3]>8&&withoutPhoto.pixels[i+3]===0)photoContributionPixels++;
+            }
+            return {sameDimensions:true,width:withPhoto.width,height:withPhoto.height,diffPixels,photoContributionPixels};
+          });
+          console.log('REAL_PHOTO_EXPORT_PIXEL_DIFF:',JSON.stringify(photoContribution));
+          assert.equal(photoContribution.sameDimensions,true,'Photo visibility must not change the artwork crop bounds');
+          assert.ok(photoContribution.diffPixels>10000,'The recovered photograph must visibly change the exported pixels');
+          assert.ok(photoContribution.photoContributionPixels>10000,'The exported PNG must contain opaque pixels contributed by the recovered photograph');
+
+          const realPhotoDownloadPromise=page.waitForEvent('download');
+          await page.locator('#exportStoryBtn').click();
+          const realPhotoDownload=await realPhotoDownloadPromise;
+          assert.equal(realPhotoDownload.suggestedFilename(),'story-studio.png','Recovered-photo export must download the expected PNG filename');
+          const realPhotoPath=await realPhotoDownload.path();
+          assert.ok(realPhotoPath,'Recovered-photo export must produce a real downloadable file');
+          const realPhotoBytes=await readFile(realPhotoPath);
+          assert.ok(realPhotoBytes.length>10000,'Recovered-photo PNG must contain the photograph and other artwork');
+          assert.deepEqual(Array.from(realPhotoBytes.subarray(0,8)),[137,80,78,71,13,10,26,10],'Recovered-photo download must be a valid PNG');
+          await realPhotoDownload.saveAs('artifacts/story-studio-real-photo-recovery-export.png');
+          console.log('REAL_PHOTO_EXPORT_DOWNLOAD:',JSON.stringify({filename:realPhotoDownload.suggestedFilename(),bytes:realPhotoBytes.length,signature:Array.from(realPhotoBytes.subarray(0,8)),...photoContribution}));
+
           await browser.close();
           NODE
 
