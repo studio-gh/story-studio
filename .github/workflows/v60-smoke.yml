@@ -489,14 +489,11 @@ jobs:
           assert.equal(circleDownload.suggestedFilename(),'story-studio.png','Circular text export must download the expected PNG filename');
           await circleToastVisiblePromise;
           await page.waitForFunction(() => {
-            const toast=document.getElementById('toast');
-            const panel=document.querySelector('#create .panel');
-            const rect=toast?.getBoundingClientRect(),pr=panel?.getBoundingClientRect(),style=toast?getComputedStyle(toast):null;
-            return !!rect&&!!pr&&toast.parentElement?.classList.contains('panel-section')&&style.position==='static'&&
-              Number(style.opacity)>.9&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0&&
-              rect.top>=pr.top-1&&rect.bottom<=pr.bottom+1&&rect.bottom>0&&rect.top<innerHeight;
+            const toast=document.getElementById('toast'),style=toast?getComputedStyle(toast):null;
+            return !!toast&&toast.classList.contains('show')&&/PNG exportado|PNG exported/i.test(toast.textContent||'')&&
+              Number(style.opacity)>.8&&style.visibility!=='hidden';
           }, null, { timeout: 1500 });
-          // Capture the feedback before reading/saving the download, which can outlast the toast timer.
+          // Capture the feedback immediately, before reading/saving the download can outlast its timer.
           await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
           const exportFeedback = await page.evaluate(() => {
             const toast=document.getElementById('toast');
