@@ -245,6 +245,32 @@ function toast(t){
  const createStyle=create?getComputedStyle(create):null;
  const createVisible=!!(create&&createStyle&&createStyle.display!=='none'&&createStyle.visibility!=='hidden'&&createRect&&createRect.width>0&&createRect.height>0);
  const inline=!!(mobile&&createVisible);
+ if(e._toastLayoutRestore){e._toastLayoutRestore();e._toastLayoutRestore=null;}
+ if(inline&&document.body.classList.contains('v62-curve-editing')){
+  const preview=create.querySelector('.workspace .stage-wrap');
+  const panel=create.querySelector('.workspace .panel');
+  const capture=(el,props)=>props.map(prop=>[prop,el.style.getPropertyValue(prop),el.style.getPropertyPriority(prop)]);
+  const restore=(el,saved)=>saved.forEach(([prop,value,priority])=>value?el.style.setProperty(prop,value,priority):el.style.removeProperty(prop));
+  const previewSaved=preview?capture(preview,['position','top','left','right']):null;
+  const panelSaved=panel?capture(panel,['position','top','left','right','bottom']):null;
+  if(preview){
+   preview.style.setProperty('position','fixed','important');
+   preview.style.setProperty('top','228px','important');
+   preview.style.setProperty('left','0px','important');
+   preview.style.setProperty('right','0px','important');
+  }
+  if(panel){
+   panel.style.setProperty('position','fixed','important');
+   panel.style.setProperty('top','492px','important');
+   panel.style.setProperty('left','10px','important');
+   panel.style.setProperty('right','10px','important');
+   panel.style.setProperty('bottom','68px','important');
+  }
+  e._toastLayoutRestore=()=>{
+   if(preview&&previewSaved)restore(preview,previewSaved);
+   if(panel&&panelSaved)restore(panel,panelSaved);
+  };
+ }
  if(inline){
   const workspace=create.querySelector(':scope > .workspace');
   const editorHead=create.querySelector(':scope > .editor-head');
@@ -262,6 +288,7 @@ function toast(t){
  e._toastTimer=setTimeout(()=>{
   e.classList.remove('show','inline-mobile-toast');
   document.body.classList.remove('inline-mobile-toast-visible');
+  if(e._toastLayoutRestore){e._toastLayoutRestore();e._toastLayoutRestore=null;}
   if(app&&e.parentElement!==app)app.appendChild(e);
  },1700);
 }

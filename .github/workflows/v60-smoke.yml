@@ -553,6 +553,21 @@ jobs:
             window.toast('QA auto-hide check');
           });
           await page.waitForFunction(() => !document.getElementById('toast')?.classList.contains('show'), null, { timeout: 2500 });
+          const exportLayoutRestored=await page.evaluate(() => {
+            const preview=document.querySelector('#create .workspace .stage-wrap');
+            const panel=document.querySelector('#create .workspace .panel');
+            return {
+              previewTop:getComputedStyle(preview).top,
+              previewPosition:getComputedStyle(preview).position,
+              panelTop:getComputedStyle(panel).top,
+              panelPosition:getComputedStyle(panel).position,
+              inlineToastClass:document.body.classList.contains('inline-mobile-toast-visible')
+            };
+          });
+          console.log('MOBILE_EXPORT_FEEDBACK_RESTORE_STATE:',JSON.stringify(exportLayoutRestored));
+          assert.equal(exportLayoutRestored.previewTop,'176px','Curve preview must return to its original position after feedback disappears');
+          assert.equal(exportLayoutRestored.panelTop,'440px','Curve controls must return to their original position after feedback disappears');
+          assert.equal(exportLayoutRestored.inlineToastClass,false,'Temporary feedback layout class must be removed after the toast');
           console.log('CIRCULAR_PNG_DOWNLOAD_STATE:',JSON.stringify({filename:circleDownload.suggestedFilename(),bytes:circleBytes.length,signature:Array.from(circleBytes.subarray(0,8))}));
           const curvePanelState = await page.evaluate(() => {
             const preview = document.querySelector('#stage-wrap') || document.querySelector('#create .stage-wrap');

@@ -3928,15 +3928,3 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
   }
 }
 
-
-/* V62 QA fix: keep the pinned curve preview and panel below the inline export feedback row. */
-@media(max-width:799px){
-  html body.inline-mobile-toast-visible.v62-curve-editing #create:has(#curveControls[style*="display: block"]) .workspace .stage-wrap{
-    position:fixed!important;top:228px!important;left:0!important;right:0!important;
-    transition:none!important;
-  }
-  html body.inline-mobile-toast-visible.v62-curve-editing #create:has(#curveControls[style*="display: block"]) .workspace .panel{
-    position:fixed!important;top:492px!important;left:10px!important;right:10px!important;bottom:68px!important;
-    transition:none!important;
-  }
-}
