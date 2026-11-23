@@ -493,24 +493,34 @@ jobs:
             const toast=document.getElementById('toast'),style=toast?getComputedStyle(toast):null;
             return !!toast&&Number(style.opacity)>.8&&style.visibility!=='hidden';
           }, null, { timeout: 1200 });
-          // Capture the feedback immediately, before reading/saving the download can outlast its timer.
+          // Hold the short-lived message only while capturing visual evidence.
+          await page.evaluate(() => { const toast=document.getElementById('toast'); if(toast?._toastTimer)clearTimeout(toast._toastTimer); });
           await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
+          const toastShot=await page.locator('#toast').screenshot({path:'artifacts/v62-mobile-export-feedback-toast.png'});
+          assert.ok(toastShot.length>500,'The export feedback element must produce a visible screenshot');
           const exportFeedback = await page.evaluate(() => {
             const toast=document.getElementById('toast');
             const create=document.getElementById('create');
             const workspace=create.querySelector(':scope > .workspace');
-            const rect=toast.getBoundingClientRect(),wr=workspace.getBoundingClientRect(),cs=getComputedStyle(toast);
+            const preview=workspace.querySelector('.stage-wrap');
+            const panel=workspace.querySelector('.panel');
+            const rect=toast.getBoundingClientRect(),wr=workspace.getBoundingClientRect(),pr=preview.getBoundingClientRect(),panelRect=panel.getBoundingClientRect(),cs=getComputedStyle(toast);
             return {
               text:toast.textContent.trim(),
               parent:toast.parentElement===create?'create':'other',
               position:cs.position,
+              background:cs.backgroundColor,
+              color:cs.color,
               visible:rect.width>0&&rect.height>0&&Number(cs.opacity)>0&&cs.visibility!=='hidden',
               inViewport:rect.bottom>0&&rect.top<innerHeight,
               aboveWorkspace:rect.bottom<=wr.top+1,
+              abovePreview:rect.bottom<=pr.top+1,
+              beforePanel:rect.bottom<=panelRect.top+1,
               toastTop:rect.top,
               toastBottom:rect.bottom,
               workspaceTop:wr.top,
-              workspaceBottom:wr.bottom
+              previewTop:pr.top,
+              panelTop:panelRect.top
             };
           });
           console.log('MOBILE_EXPORT_FEEDBACK_STATE:',JSON.stringify(exportFeedback));
@@ -518,12 +528,22 @@ jobs:
           assert.equal(exportFeedback.position,'static','Mobile export feedback must participate in normal document flow');
           assert.equal(exportFeedback.visible,true,'Mobile export feedback must be visibly rendered');
           assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must appear in the browser viewport');
-          assert.equal(exportFeedback.aboveWorkspace,true,'Mobile export feedback must remain above the preview and editing controls without covering them');
+          assert.equal(exportFeedback.abovePreview,true,'Mobile export feedback must appear above the actual pinned preview, not only the outer workspace');
+          assert.equal(exportFeedback.beforePanel,true,'Mobile export feedback must appear before the contextual controls');
+          assert.notEqual(exportFeedback.background,'rgba(0, 0, 0, 0)','Export feedback must have a visible background');
           const circleDownloadPath = await circleDownload.path();
           assert.ok(circleDownloadPath,'Circular text export must produce a real downloadable file');
           const circleBytes = await readFile(circleDownloadPath);
           assert.ok(circleBytes.length>1000,'Circular text PNG must contain rendered artwork');
           await circleDownload.saveAs('artifacts/story-studio-circle-export.png');
+          await page.evaluate(() => {
+            const toast=document.getElementById('toast');
+            document.body.classList.remove('inline-mobile-toast-visible');
+            toast?.classList.remove('show','inline-mobile-toast');
+            const app=document.querySelector('.app');
+            if(app&&toast&&toast.parentElement!==app)app.appendChild(toast);
+            window.toast('QA auto-hide check');
+          });
           await page.waitForFunction(() => !document.getElementById('toast')?.classList.contains('show'), null, { timeout: 2500 });
           console.log('CIRCULAR_PNG_DOWNLOAD_STATE:',JSON.stringify({filename:circleDownload.suggestedFilename(),bytes:circleBytes.length,signature:Array.from(circleBytes.subarray(0,8))}));
           const curvePanelState = await page.evaluate(() => {

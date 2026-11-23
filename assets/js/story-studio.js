@@ -255,11 +255,13 @@ function toast(t){
   else create.insertBefore(e,create.firstChild);
  }else if(app&&e.parentElement!==app)app.appendChild(e);
  e.classList.toggle('inline-mobile-toast',inline);
+ document.body.classList.toggle('inline-mobile-toast-visible',inline);
  e.textContent=t;e.setAttribute('role','status');e.setAttribute('aria-live','polite');
  e.classList.add('show');
  clearTimeout(e._toastTimer);
  e._toastTimer=setTimeout(()=>{
   e.classList.remove('show','inline-mobile-toast');
+  document.body.classList.remove('inline-mobile-toast-visible');
   if(app&&e.parentElement!==app)app.appendChild(e);
  },1700);
 }
