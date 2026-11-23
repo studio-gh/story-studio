@@ -244,20 +244,17 @@ function toast(t){
  const createActive=!!(create&&create.classList.contains('active'));
  const target=mobile&&createActive?create.querySelector('.panel'):app;
  if(target&&target!==app){
-  // Place feedback beside the first control section with enough visible space.
-  // Do not force-scroll the editor: the user's current editing position must stay put.
-  const sections=[...target.querySelectorAll(':scope > .panel-section')].filter(section=>
-   !section.hidden&&getComputedStyle(section).display!=='none');
-  const before=sections.find(section=>{
-   const r=section.getBoundingClientRect();
-   return r.top>=58&&r.top<window.innerHeight&&r.bottom>0;
+  // Keep the message inside the panel's currently visible section. Placing it
+  // after that section's title keeps it visible without changing the user's scroll.
+  const panelRect=target.getBoundingClientRect();
+  const section=[...target.querySelectorAll(':scope > .panel-section')].find(item=>{
+   if(item.hidden||getComputedStyle(item).display==='none')return false;
+   const r=item.getBoundingClientRect();
+   return r.bottom>panelRect.top&&r.top<panelRect.bottom;
   });
-  const after=sections.find(section=>{
-   const r=section.getBoundingClientRect();
-   return r.bottom>0&&r.bottom<=window.innerHeight-58;
-  });
-  if(before)target.insertBefore(e,before);
-  else if(after)target.insertBefore(e,after.nextSibling);
+  const title=section?.querySelector(':scope > .panel-title');
+  if(title)title.insertAdjacentElement('afterend',e);
+  else if(section)section.insertBefore(e,section.firstChild);
   else target.insertBefore(e,target.firstChild);
  }else if(app&&e.parentElement!==app)app.appendChild(e);
  e.classList.toggle('inline-mobile-toast',!!(mobile&&createActive&&target&&target!==app));
