@@ -493,6 +493,8 @@ jobs:
             const rect=toast?.getBoundingClientRect();
             return !!rect&&rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<innerHeight;
           }, null, { timeout: 2000 });
+          // Capture while the short-lived confirmation is still visible.
+          await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
           const exportFeedback = await page.evaluate(() => {
             const toast=document.getElementById('toast');
             const panel=document.querySelector('#create .panel');
@@ -518,7 +520,6 @@ jobs:
           assert.equal(exportFeedback.visible,true,'Mobile export feedback must have measurable geometry');
           assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must actually appear in the visible viewport');
           assert.ok(exportFeedback.controlsTop!==null&&exportFeedback.toastBottom<=exportFeedback.controlsTop,'Mobile export feedback must not overlap the editing controls');
-          await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
           // The inline confirmation is temporary. Let it leave the panel before
           // checking the next curve-control state, so the test measures the editor
           // rather than the brief feedback message's reserved space.
