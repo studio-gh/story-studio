@@ -252,12 +252,22 @@ function toast(t){
  const target=inline?panel:app;
  if(inline){
   const bounds=target.getBoundingClientRect();
-  const section=[...target.querySelectorAll(':scope > .panel-section')].find(item=>{
-   const style=getComputedStyle(item),r=item.getBoundingClientRect();
-   return !item.hidden&&style.display!=='none'&&style.visibility!=='hidden'&&r.width>0&&r.height>0&&r.bottom>bounds.top&&r.top<bounds.bottom;
-  });
+  const isVisibleControl=child=>{
+   const style=getComputedStyle(child),r=child.getBoundingClientRect();
+   return child.matches('.field,.tool-grid,.row,#curveControls,#shapeControls,#imageControls,#selectionControls')&&
+    !child.hidden&&style.display!=='none'&&style.visibility!=='hidden'&&r.width>0&&r.height>0&&
+    r.bottom>bounds.top&&r.top<bounds.bottom;
+  };
+  // Put feedback immediately before the first control currently visible in the
+  // scrollable panel. Inserting after the section title can place it above the
+  // viewport when the user has scrolled down to curve or photo controls.
+  const section=[...target.querySelectorAll(':scope > .panel-section')].find(item=>
+   !item.hidden&&getComputedStyle(item).display!=='none'&&[...item.children].some(isVisibleControl)
+  );
+  const anchor=section&&[...section.children].find(isVisibleControl);
   const title=section?.querySelector(':scope > .panel-title');
-  if(title)title.insertAdjacentElement('afterend',e);
+  if(anchor)anchor.insertAdjacentElement('beforebegin',e);
+  else if(title)title.insertAdjacentElement('afterend',e);
   else if(section)section.insertBefore(e,section.firstChild);
   else{
    const head=target.querySelector(':scope > .v63-panel-head');

@@ -500,7 +500,7 @@ jobs:
             const panel=document.querySelector('#create .panel');
             const parent=toast.parentElement,children=[...parent.children],toastIndex=children.indexOf(toast);
             const nextControl=children.slice(toastIndex+1).find(el=>
-              el.classList.contains('field')||el.classList.contains('tool-grid')||el.classList.contains('row'));
+              el.matches('.field,.tool-grid,.row,#curveControls,#shapeControls,#imageControls,#selectionControls'));
             const rect=toast.getBoundingClientRect(),pr=panel.getBoundingClientRect(),cs=getComputedStyle(toast);
             return {
               text:toast.textContent.trim(),
