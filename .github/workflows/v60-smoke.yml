@@ -490,35 +490,39 @@ jobs:
           await page.waitForFunction(() => document.getElementById('toast')?.classList.contains('show'));
           await page.waitForFunction(() => {
             const toast=document.getElementById('toast');
-            const rect=toast?.getBoundingClientRect();
-            return !!rect&&rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<innerHeight;
+            const panel=document.querySelector('#create .panel');
+            const rect=toast?.getBoundingClientRect(),pr=panel?.getBoundingClientRect();
+            return !!rect&&!!pr&&rect.width>0&&rect.height>0&&rect.bottom>pr.top&&rect.top<pr.bottom&&rect.bottom>0&&rect.top<innerHeight;
           }, null, { timeout: 2000 });
-          // Capture while the short-lived confirmation is still visible.
+          // Capture while the short-lived confirmation is still visible inside the panel.
           await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
           const exportFeedback = await page.evaluate(() => {
             const toast=document.getElementById('toast');
             const panel=document.querySelector('#create .panel');
-            const children=[...panel.children];
-            const toastIndex=children.indexOf(toast);
-            const followingSection=children.slice(toastIndex+1).find(section=>
-              section.classList.contains('panel-section')&&!section.hidden&&getComputedStyle(section).display!=='none');
-            const rect=toast.getBoundingClientRect(),sectionRect=followingSection?.getBoundingClientRect();
+            const parent=toast.parentElement,children=[...parent.children],toastIndex=children.indexOf(toast);
+            const nextControl=children.slice(toastIndex+1).find(el=>
+              el.classList.contains('field')||el.classList.contains('tool-grid')||el.classList.contains('row'));
+            const rect=toast.getBoundingClientRect(),pr=panel.getBoundingClientRect(),cs=getComputedStyle(toast);
             return {
               text:toast.textContent.trim(),
-              parent:toast.parentElement===panel?'panel':'other',
-              position:getComputedStyle(toast).position,
-              visible:rect.width>0&&rect.height>0,
+              parent:parent.classList.contains('panel-section')?'panel-section':'other',
+              position:cs.position,
+              visible:rect.width>0&&rect.height>0&&Number(cs.opacity)>0&&cs.visibility!=='hidden',
               inViewport:rect.bottom>0&&rect.top<innerHeight,
+              inPanelViewport:rect.bottom>pr.top&&rect.top<pr.bottom,
               toastTop:rect.top,
               toastBottom:rect.bottom,
-              controlsTop:sectionRect?.top??null
+              panelTop:pr.top,
+              panelBottom:pr.bottom,
+              controlsTop:nextControl?.getBoundingClientRect().top??null
             };
           });
           console.log('MOBILE_EXPORT_FEEDBACK_STATE:',JSON.stringify(exportFeedback));
-          assert.equal(exportFeedback.parent,'panel','Mobile export feedback must stay in the editor panel flow');
+          assert.equal(exportFeedback.parent,'panel-section','Mobile export feedback must stay inside the active editor section');
           assert.equal(exportFeedback.position,'static','Mobile export feedback must participate in layout, not float over controls');
-          assert.equal(exportFeedback.visible,true,'Mobile export feedback must have measurable geometry');
-          assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must actually appear in the visible viewport');
+          assert.equal(exportFeedback.visible,true,'Mobile export feedback must be visibly rendered');
+          assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must appear in the browser viewport');
+          assert.equal(exportFeedback.inPanelViewport,true,'Mobile export feedback must not be clipped outside the panel viewport');
           assert.ok(exportFeedback.controlsTop!==null&&exportFeedback.toastBottom<=exportFeedback.controlsTop,'Mobile export feedback must not overlap the editing controls');
           // The inline confirmation is temporary. Let it leave the panel before
           // checking the next curve-control state, so the test measures the editor
