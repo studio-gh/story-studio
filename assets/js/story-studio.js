@@ -243,11 +243,27 @@ function toast(t){
  const mobile=!!(window.matchMedia&&window.matchMedia('(max-width:799px)').matches);
  const createActive=!!(create&&create.classList.contains('active'));
  const target=mobile&&createActive?create.querySelector('.panel'):app;
- if(target&&target!==app)target.insertBefore(e,target.firstChild);
- else if(app&&e.parentElement!==app)app.appendChild(e);
+ if(target&&target!==app){
+  // Keep feedback beside the controls the user is currently viewing, rather
+  // than placing it at the top of a long panel that may be scrolled off-screen.
+  const visibleSection=[...target.querySelectorAll(':scope > .panel-section')].find(section=>{
+   if(section.hidden||getComputedStyle(section).display==='none')return false;
+   const r=section.getBoundingClientRect();
+   return r.bottom>0&&r.top<window.innerHeight;
+  });
+  target.insertBefore(e,visibleSection||target.firstChild);
+ }else if(app&&e.parentElement!==app)app.appendChild(e);
  e.classList.toggle('inline-mobile-toast',!!(mobile&&createActive&&target&&target!==app));
  e.textContent=t;e.setAttribute('role','status');e.setAttribute('aria-live','polite');
  e.classList.add('show');
+ if(mobile&&createActive&&target&&target!==app){
+  requestAnimationFrame(()=>{
+   const r=e.getBoundingClientRect();
+   if(r.width&&r.height&&(r.top<0||r.bottom>window.innerHeight)){
+    e.scrollIntoView({block:'nearest',inline:'nearest'});
+   }
+  });
+ }
  clearTimeout(e._toastTimer);
  e._toastTimer=setTimeout(()=>{
   e.classList.remove('show','inline-mobile-toast');
