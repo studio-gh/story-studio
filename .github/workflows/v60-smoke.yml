@@ -487,13 +487,18 @@ jobs:
           const circleBytes = await readFile(circleDownloadPath);
           assert.ok(circleBytes.length>1000,'Circular text PNG must contain rendered artwork');
           await circleDownload.saveAs('artifacts/story-studio-circle-export.png');
-          await page.waitForFunction(() => document.getElementById('toast')?.classList.contains('show'));
+          await page.waitForFunction(() => {
+            const toast=document.getElementById('toast');
+            return !!toast&&toast.classList.contains('show')&&/PNG exportado|PNG exported/i.test(toast.textContent||'');
+          }, null, { timeout: 2500 });
           await page.waitForFunction(() => {
             const toast=document.getElementById('toast');
             const panel=document.querySelector('#create .panel');
-            const rect=toast?.getBoundingClientRect(),pr=panel?.getBoundingClientRect();
-            return !!rect&&!!pr&&rect.width>0&&rect.height>0&&rect.bottom>pr.top&&rect.top<pr.bottom&&rect.bottom>0&&rect.top<innerHeight;
-          }, null, { timeout: 2000 });
+            const rect=toast?.getBoundingClientRect(),pr=panel?.getBoundingClientRect(),style=toast?getComputedStyle(toast):null;
+            return !!rect&&!!pr&&toast.parentElement?.classList.contains('panel-section')&&style.position==='static'&&
+              Number(style.opacity)>.9&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0&&
+              rect.top>=pr.top-1&&rect.bottom<=pr.bottom+1&&rect.bottom>0&&rect.top<innerHeight;
+          }, null, { timeout: 2500 });
           // Capture while the short-lived confirmation is still visible inside the panel.
           await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
           const exportFeedback = await page.evaluate(() => {
@@ -505,7 +510,11 @@ jobs:
             const rect=toast.getBoundingClientRect(),pr=panel.getBoundingClientRect(),cs=getComputedStyle(toast);
             return {
               text:toast.textContent.trim(),
-              parent:parent.classList.contains('panel-section')?'panel-section':'other',
+              parent:parent.classList.contains('panel-section')?'panel-section':parent.classList.contains('panel')?'panel':'other',
+              parentClass:parent.className,
+              createActive:document.getElementById('create')?.classList.contains('active'),
+              createDisplay:getComputedStyle(document.getElementById('create')).display,
+              panelDisplay:getComputedStyle(panel).display,
               position:cs.position,
               visible:rect.width>0&&rect.height>0&&Number(cs.opacity)>0&&cs.visibility!=='hidden',
               inViewport:rect.bottom>0&&rect.top<innerHeight,

@@ -241,23 +241,31 @@ window.sharePNG=async()=>{try{finishAllContinuousEdits();const blob=await render
 function toast(t){
  const e=$('toast'),create=$('create'),app=document.querySelector('.app');
  const mobile=!!(window.matchMedia&&window.matchMedia('(max-width:799px)').matches);
- const createActive=!!(create&&create.classList.contains('active'));
- const target=mobile&&createActive?create.querySelector('.panel'):app;
- if(target&&target!==app){
-  // Keep the message inside the panel's currently visible section. Placing it
-  // after that section's title keeps it visible without changing the user's scroll.
-  const panelRect=target.getBoundingClientRect();
+ const createRect=create?.getBoundingClientRect();
+ const createStyle=create?getComputedStyle(create):null;
+ const createVisible=!!(create&&createStyle&&createStyle.display!=='none'&&createStyle.visibility!=='hidden'&&createRect&&createRect.width>0&&createRect.height>0);
+ const panel=create?.querySelector('.panel');
+ const panelRect=panel?.getBoundingClientRect();
+ const panelStyle=panel?getComputedStyle(panel):null;
+ const panelVisible=!!(panel&&panelStyle&&panelStyle.display!=='none'&&panelStyle.visibility!=='hidden'&&panelRect&&panelRect.width>0&&panelRect.height>0);
+ const inline=!!(mobile&&createVisible&&panelVisible);
+ const target=inline?panel:app;
+ if(inline){
+  const bounds=target.getBoundingClientRect();
   const section=[...target.querySelectorAll(':scope > .panel-section')].find(item=>{
-   if(item.hidden||getComputedStyle(item).display==='none')return false;
-   const r=item.getBoundingClientRect();
-   return r.bottom>panelRect.top&&r.top<panelRect.bottom;
+   const style=getComputedStyle(item),r=item.getBoundingClientRect();
+   return !item.hidden&&style.display!=='none'&&style.visibility!=='hidden'&&r.width>0&&r.height>0&&r.bottom>bounds.top&&r.top<bounds.bottom;
   });
   const title=section?.querySelector(':scope > .panel-title');
   if(title)title.insertAdjacentElement('afterend',e);
   else if(section)section.insertBefore(e,section.firstChild);
-  else target.insertBefore(e,target.firstChild);
+  else{
+   const head=target.querySelector(':scope > .v63-panel-head');
+   if(head)head.insertAdjacentElement('afterend',e);
+   else target.insertBefore(e,target.firstChild);
+  }
  }else if(app&&e.parentElement!==app)app.appendChild(e);
- e.classList.toggle('inline-mobile-toast',!!(mobile&&createActive&&target&&target!==app));
+ e.classList.toggle('inline-mobile-toast',inline);
  e.textContent=t;e.setAttribute('role','status');e.setAttribute('aria-live','polite');
  e.classList.add('show');
  clearTimeout(e._toastTimer);
