@@ -3917,6 +3917,8 @@ body.keyboard-open #create .v63-panel-head,body:has(#textValue:focus) #create .v
     padding:9px 12px!important;
     transform:none!important;
     border-radius:10px!important;
+    color:#fffefa!important;
+    font-weight:700!important;
     text-align:center!important;
     box-shadow:none!important;
     pointer-events:none;
