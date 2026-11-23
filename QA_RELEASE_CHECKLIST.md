@@ -165,3 +165,29 @@ The run produced 14 evidence files, including mobile/desktop screenshots and bot
 - Visually verify the official published URL when browser access is available. The production URL remains on V61 and was not changed by this work.
 
 Playwright Chromium emulation is not a substitute for physical-device testing. Keep the release checkboxes open until the remaining manual checks are evidenced. V62 remains a Draft review build, not a release candidate.
+
+### Latest automated evidence (2026-11-23 — run #285)
+
+Product and browser-test commit: `32223969809b0c3b8eca6a67f2630d41c03f6fcd` on `design/v62-editorial-identity`.
+
+- [GitHub Actions run #285](https://github.com/studio-gh/story-studio/actions/runs/45218845718) completed successfully. The `mobile-editor` job passed all 14 substantive workflow steps.
+- The latest change to mobile export feedback was visually verified from the downloaded artifact, not only from DOM measurements. `v62-mobile-export-feedback.png` visibly shows the message in its own row; the pinned preview begins immediately below it and the contextual panel remains below the preview. `v62-mobile-export-feedback-toast.png` was also opened and inspected.
+- Measured feedback state: toast y=175.09–227.09 px; preview top=228 px; panel top=492 px. Text `rgb(255,254,250)` on background `rgb(48,51,45)` gives a measured contrast ratio of 9.78:1, above WCAG AA's 4.5:1 threshold.
+- PT-BR initial state and PT-BR ↔ EN editor labels/actions passed. Live text editing, 390×844 mobile, 390×460 compact/keyboard emulation, arc and circle modes, shape/photo flows, desktop 1440×1000, PNG downloads, and draft recovery passed.
+- Real-photo background removal completed with a 667×834 px openly licensed fixture: 132,720 transparent pixels and 388,855 opaque subject pixels.
+- Photo draft recovery after reload preserved the same layer ID, asset ID, 62,743-character image data URL, and decoded 667×834 dimensions. Text/shape draft recovery also passed.
+- Both downloaded PNGs were opened and inspected: circular text 936×991 px / 74,401 bytes; composite 1,036×764 px / 73,090 bytes. The composite retained transparent outer corners and both transparent and visible pixels.
+- All 19 files in artifact [14840530323](https://github.com/studio-gh/story-studio/actions/runs/45218845718/artifacts/14840530323) were downloaded. The contact sheet and key mobile/desktop screenshots, toast, photo recovery, cutout, and PNG files were inspected.
+- The browser log includes the intentionally simulated model-load failure used to verify fallback behavior. The workflow's uncaught-error assertions passed; do not confuse this expected QA scenario with an unhandled application error.
+
+### Still required before release (rechecked 2026-11-23)
+
+- Physical Android verification: real keyboard opening/closing, device safe areas, touch gestures, and photo selection from the device gallery.
+- On a physical device, verify photo crop/resize/delete and cutout-edge cleanup.
+- iOS Safari compatibility check.
+- Recover and export a composition containing a real recovered photograph; current real-photo recovery and mixed-layer PNG export are separate test flows.
+- Broader preview-versus-export comparison for outlines, shadows, crop, rotation, and multi-layer artwork.
+- Broader accessibility, copy/share, high-resolution image, performance, and edge-case checks.
+- Open and visually verify the official GitHub Pages URL after an approved production deployment. The official URL was not accessible from the current browser/network environment during this session; no live-page verification is claimed.
+
+Chromium's simulated keyboard and safe-area CSS are not physical-device proof. PR #6 remains Draft and unmerged. No merge, production deploy, or change to `main` or the official URL was performed.
