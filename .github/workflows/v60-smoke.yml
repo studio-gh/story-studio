@@ -488,16 +488,26 @@ jobs:
           assert.ok(circleBytes.length>1000,'Circular text PNG must contain rendered artwork');
           await circleDownload.saveAs('artifacts/story-studio-circle-export.png');
           await page.waitForFunction(() => document.getElementById('toast')?.classList.contains('show'));
+          await page.waitForFunction(() => {
+            const toast=document.getElementById('toast');
+            const rect=toast?.getBoundingClientRect();
+            return !!rect&&rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<innerHeight;
+          }, null, { timeout: 2000 });
           const exportFeedback = await page.evaluate(() => {
             const toast=document.getElementById('toast');
             const panel=document.querySelector('#create .panel');
-            const firstVisibleSection=[...panel.querySelectorAll(':scope > .panel-section')].find(section=>!section.hidden&&getComputedStyle(section).display!=='none');
-            const rect=toast.getBoundingClientRect(),sectionRect=firstVisibleSection?.getBoundingClientRect();
+            const children=[...panel.children];
+            const toastIndex=children.indexOf(toast);
+            const followingSection=children.slice(toastIndex+1).find(section=>
+              section.classList.contains('panel-section')&&!section.hidden&&getComputedStyle(section).display!=='none');
+            const rect=toast.getBoundingClientRect(),sectionRect=followingSection?.getBoundingClientRect();
             return {
               text:toast.textContent.trim(),
               parent:toast.parentElement===panel?'panel':'other',
               position:getComputedStyle(toast).position,
               visible:rect.width>0&&rect.height>0,
+              inViewport:rect.bottom>0&&rect.top<innerHeight,
+              toastTop:rect.top,
               toastBottom:rect.bottom,
               controlsTop:sectionRect?.top??null
             };
@@ -505,8 +515,10 @@ jobs:
           console.log('MOBILE_EXPORT_FEEDBACK_STATE:',JSON.stringify(exportFeedback));
           assert.equal(exportFeedback.parent,'panel','Mobile export feedback must stay in the editor panel flow');
           assert.equal(exportFeedback.position,'static','Mobile export feedback must participate in layout, not float over controls');
-          assert.equal(exportFeedback.visible,true,'Mobile export feedback must remain visible');
+          assert.equal(exportFeedback.visible,true,'Mobile export feedback must have measurable geometry');
+          assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must actually appear in the visible viewport');
           assert.ok(exportFeedback.controlsTop!==null&&exportFeedback.toastBottom<=exportFeedback.controlsTop,'Mobile export feedback must not overlap the editing controls');
+          await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
           console.log('CIRCULAR_PNG_DOWNLOAD_STATE:',JSON.stringify({filename:circleDownload.suggestedFilename(),bytes:circleBytes.length,signature:Array.from(circleBytes.subarray(0,8))}));
           const curvePanelState = await page.evaluate(() => {
             const preview = document.querySelector('#stage-wrap') || document.querySelector('#create .stage-wrap');
