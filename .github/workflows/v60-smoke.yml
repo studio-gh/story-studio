@@ -522,6 +522,7 @@ jobs:
               previewTop:pr.top,
               previewPosition:getComputedStyle(preview).position,
               previewCssTop:getComputedStyle(preview).top,
+              curveControlsStyle:document.getElementById('curveControls').getAttribute('style'),
               panelTop:panelRect.top,
               bodyClasses:document.body.className,
               scrollY:window.scrollY
@@ -534,6 +535,7 @@ jobs:
           assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must appear in the browser viewport');
           assert.equal(exportFeedback.abovePreview,true,'Mobile export feedback must appear above the actual pinned preview, not only the outer workspace');
           assert.equal(exportFeedback.previewPosition,'fixed','Curve preview must use the explicit fixed position while feedback is visible');
+          assert.equal(exportFeedback.previewCssTop,'228px','Pinned preview must be offset below the feedback row while it is visible');
           assert.ok(exportFeedback.previewTop>=exportFeedback.toastBottom-1,'Pinned preview must begin after the visible feedback row');
           assert.equal(exportFeedback.beforePanel,true,'Mobile export feedback must appear before the contextual controls');
           assert.notEqual(exportFeedback.background,'rgba(0, 0, 0, 0)','Export feedback must have a visible background');
