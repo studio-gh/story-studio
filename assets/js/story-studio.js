@@ -244,36 +244,15 @@ function toast(t){
  const createRect=create?.getBoundingClientRect();
  const createStyle=create?getComputedStyle(create):null;
  const createVisible=!!(create&&createStyle&&createStyle.display!=='none'&&createStyle.visibility!=='hidden'&&createRect&&createRect.width>0&&createRect.height>0);
- const panel=create?.querySelector('.panel');
- const panelRect=panel?.getBoundingClientRect();
- const panelStyle=panel?getComputedStyle(panel):null;
- const panelVisible=!!(panel&&panelStyle&&panelStyle.display!=='none'&&panelStyle.visibility!=='hidden'&&panelRect&&panelRect.width>0&&panelRect.height>0);
- const inline=!!(mobile&&createVisible&&panelVisible);
- const target=inline?panel:app;
+ const inline=!!(mobile&&createVisible);
  if(inline){
-  const bounds=target.getBoundingClientRect();
-  const isVisibleControl=child=>{
-   const style=getComputedStyle(child),r=child.getBoundingClientRect();
-   return child.matches('.field,.tool-grid,.row,#curveControls,#shapeControls,#imageControls,#selectionControls')&&
-    !child.hidden&&style.display!=='none'&&style.visibility!=='hidden'&&r.width>0&&r.height>0&&
-    r.bottom>bounds.top&&r.top<bounds.bottom;
-  };
-  // Put feedback immediately before the first control currently visible in the
-  // scrollable panel. Inserting after the section title can place it above the
-  // viewport when the user has scrolled down to curve or photo controls.
-  const section=[...target.querySelectorAll(':scope > .panel-section')].find(item=>
-   !item.hidden&&getComputedStyle(item).display!=='none'&&[...item.children].some(isVisibleControl)
-  );
-  const anchor=section&&[...section.children].find(isVisibleControl);
-  const title=section?.querySelector(':scope > .panel-title');
-  if(anchor)anchor.insertAdjacentElement('beforebegin',e);
-  else if(title)title.insertAdjacentElement('afterend',e);
-  else if(section)section.insertBefore(e,section.firstChild);
-  else{
-   const head=target.querySelector(':scope > .v63-panel-head');
-   if(head)head.insertAdjacentElement('afterend',e);
-   else target.insertBefore(e,target.firstChild);
-  }
+  const workspace=create.querySelector(':scope > .workspace');
+  const editorHead=create.querySelector(':scope > .editor-head');
+  // A dedicated row between the editor header and workspace stays visible even
+  // when the user has scrolled deep into the contextual controls panel.
+  if(workspace)workspace.insertAdjacentElement('beforebegin',e);
+  else if(editorHead)editorHead.insertAdjacentElement('afterend',e);
+  else create.insertBefore(e,create.firstChild);
  }else if(app&&e.parentElement!==app)app.appendChild(e);
  e.classList.toggle('inline-mobile-toast',inline);
  e.textContent=t;e.setAttribute('role','status');e.setAttribute('aria-live','polite');

@@ -481,7 +481,8 @@ jobs:
           // Start observing the short-lived success message before triggering the download.
           const circleToastVisiblePromise = page.waitForFunction(() => {
             const toast=document.getElementById('toast');
-            return !!toast&&toast.classList.contains('show')&&/PNG exportado|PNG exported/i.test(toast.textContent||'');
+            return !!toast&&toast.classList.contains('show')&&toast.parentElement?.id==='create'&&
+              getComputedStyle(toast).position==='static'&&/PNG exportado|PNG exported/i.test(toast.textContent||'');
           }, null, { timeout: 2500 });
           const circleDownloadPromise = page.waitForEvent('download');
           await page.locator('#exportStoryBtn').click();
@@ -490,43 +491,34 @@ jobs:
           await circleToastVisiblePromise;
           await page.waitForFunction(() => {
             const toast=document.getElementById('toast'),style=toast?getComputedStyle(toast):null;
-            return !!toast&&toast.classList.contains('show')&&/PNG exportado|PNG exported/i.test(toast.textContent||'')&&
-              Number(style.opacity)>.8&&style.visibility!=='hidden';
-          }, null, { timeout: 1500 });
+            return !!toast&&Number(style.opacity)>.8&&style.visibility!=='hidden';
+          }, null, { timeout: 1200 });
           // Capture the feedback immediately, before reading/saving the download can outlast its timer.
           await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
           const exportFeedback = await page.evaluate(() => {
             const toast=document.getElementById('toast');
-            const panel=document.querySelector('#create .panel');
-            const parent=toast.parentElement,children=[...parent.children],toastIndex=children.indexOf(toast);
-            const nextControl=children.slice(toastIndex+1).find(el=>
-              el.matches('.field,.tool-grid,.row,#curveControls,#shapeControls,#imageControls,#selectionControls'));
-            const rect=toast.getBoundingClientRect(),pr=panel.getBoundingClientRect(),cs=getComputedStyle(toast);
+            const create=document.getElementById('create');
+            const workspace=create.querySelector(':scope > .workspace');
+            const rect=toast.getBoundingClientRect(),wr=workspace.getBoundingClientRect(),cs=getComputedStyle(toast);
             return {
               text:toast.textContent.trim(),
-              parent:parent.classList.contains('panel-section')?'panel-section':parent.classList.contains('panel')?'panel':'other',
-              parentClass:parent.className,
-              createActive:document.getElementById('create')?.classList.contains('active'),
-              createDisplay:getComputedStyle(document.getElementById('create')).display,
-              panelDisplay:getComputedStyle(panel).display,
+              parent:toast.parentElement===create?'create':'other',
               position:cs.position,
               visible:rect.width>0&&rect.height>0&&Number(cs.opacity)>0&&cs.visibility!=='hidden',
               inViewport:rect.bottom>0&&rect.top<innerHeight,
-              inPanelViewport:rect.bottom>pr.top&&rect.top<pr.bottom,
+              aboveWorkspace:rect.bottom<=wr.top+1,
               toastTop:rect.top,
               toastBottom:rect.bottom,
-              panelTop:pr.top,
-              panelBottom:pr.bottom,
-              controlsTop:nextControl?.getBoundingClientRect().top??null
+              workspaceTop:wr.top,
+              workspaceBottom:wr.bottom
             };
           });
           console.log('MOBILE_EXPORT_FEEDBACK_STATE:',JSON.stringify(exportFeedback));
-          assert.equal(exportFeedback.parent,'panel-section','Mobile export feedback must stay inside the active editor section');
-          assert.equal(exportFeedback.position,'static','Mobile export feedback must participate in layout, not float over controls');
+          assert.equal(exportFeedback.parent,'create','Mobile export feedback must sit in its own editor row');
+          assert.equal(exportFeedback.position,'static','Mobile export feedback must participate in normal document flow');
           assert.equal(exportFeedback.visible,true,'Mobile export feedback must be visibly rendered');
           assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must appear in the browser viewport');
-          assert.equal(exportFeedback.inPanelViewport,true,'Mobile export feedback must not be clipped outside the panel viewport');
-          assert.ok(exportFeedback.controlsTop!==null&&exportFeedback.toastBottom<=exportFeedback.controlsTop,'Mobile export feedback must not overlap the editing controls');
+          assert.equal(exportFeedback.aboveWorkspace,true,'Mobile export feedback must remain above the preview and editing controls without covering them');
           const circleDownloadPath = await circleDownload.path();
           assert.ok(circleDownloadPath,'Circular text export must produce a real downloadable file');
           const circleBytes = await readFile(circleDownloadPath);
