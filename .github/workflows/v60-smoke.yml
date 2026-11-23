@@ -519,6 +519,10 @@ jobs:
           assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must actually appear in the visible viewport');
           assert.ok(exportFeedback.controlsTop!==null&&exportFeedback.toastBottom<=exportFeedback.controlsTop,'Mobile export feedback must not overlap the editing controls');
           await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
+          // The inline confirmation is temporary. Let it leave the panel before
+          // checking the next curve-control state, so the test measures the editor
+          // rather than the brief feedback message's reserved space.
+          await page.waitForFunction(() => !document.getElementById('toast')?.classList.contains('show'), null, { timeout: 2500 });
           console.log('CIRCULAR_PNG_DOWNLOAD_STATE:',JSON.stringify({filename:circleDownload.suggestedFilename(),bytes:circleBytes.length,signature:Array.from(circleBytes.subarray(0,8))}));
           const curvePanelState = await page.evaluate(() => {
             const preview = document.querySelector('#stage-wrap') || document.querySelector('#create .stage-wrap');
