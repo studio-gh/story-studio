@@ -323,6 +323,18 @@ jobs:
           // Language controls take focus away from the text field; restore it before measuring the active typing layout.
           await page.locator('#textValue').focus();
           await page.waitForFunction(() => document.activeElement?.id === 'textValue' && document.body.classList.contains('v67-text-editing'));
+          // Focus changes the responsive stage size. Wait for ResizeObserver and the
+          // preview scaler to finish before asserting layer coordinates; sampling the
+          // same task as focus can catch a transient pre-layout position.
+          await page.waitForFunction(() => {
+            const stage = document.getElementById('stage');
+            const layer = stage?.querySelector('.layer');
+            if (!stage || !layer) return false;
+            const sr = stage.getBoundingClientRect();
+            const lr = layer.getBoundingClientRect();
+            const centerRatio = (lr.top + lr.height / 2 - sr.top) / sr.height;
+            return sr.height > 170 && sr.height < 500 && centerRatio > 0.42 && centerRatio < 0.58;
+          }, null, { timeout: 3000 });
           assert.equal(await page.locator('#textValue').inputValue(), 'Story Studio V61', 'New text must be retained in input');
           assert.ok(await page.locator('#stage .layer').count() === 1, 'Adding text must create a layer');
           const expandedPreview = await page.evaluate(() => {
