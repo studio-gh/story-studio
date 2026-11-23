@@ -478,19 +478,16 @@ jobs:
             'Circular text must export as a real, tightly cropped transparent PNG');
           assert.ok(Math.abs(circlePng.width-circlePng.height)<120,
             'Circular text PNG bounds should remain approximately square');
+          // Start observing the short-lived success message before triggering the download.
+          const circleToastVisiblePromise = page.waitForFunction(() => {
+            const toast=document.getElementById('toast');
+            return !!toast&&toast.classList.contains('show')&&/PNG exportado|PNG exported/i.test(toast.textContent||'');
+          }, null, { timeout: 2500 });
           const circleDownloadPromise = page.waitForEvent('download');
           await page.locator('#exportStoryBtn').click();
           const circleDownload = await circleDownloadPromise;
           assert.equal(circleDownload.suggestedFilename(),'story-studio.png','Circular text export must download the expected PNG filename');
-          const circleDownloadPath = await circleDownload.path();
-          assert.ok(circleDownloadPath,'Circular text export must produce a real downloadable file');
-          const circleBytes = await readFile(circleDownloadPath);
-          assert.ok(circleBytes.length>1000,'Circular text PNG must contain rendered artwork');
-          await circleDownload.saveAs('artifacts/story-studio-circle-export.png');
-          await page.waitForFunction(() => {
-            const toast=document.getElementById('toast');
-            return !!toast&&toast.classList.contains('show')&&/PNG exportado|PNG exported/i.test(toast.textContent||'');
-          }, null, { timeout: 2500 });
+          await circleToastVisiblePromise;
           await page.waitForFunction(() => {
             const toast=document.getElementById('toast');
             const panel=document.querySelector('#create .panel');
@@ -498,8 +495,8 @@ jobs:
             return !!rect&&!!pr&&toast.parentElement?.classList.contains('panel-section')&&style.position==='static'&&
               Number(style.opacity)>.9&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0&&
               rect.top>=pr.top-1&&rect.bottom<=pr.bottom+1&&rect.bottom>0&&rect.top<innerHeight;
-          }, null, { timeout: 2500 });
-          // Capture while the short-lived confirmation is still visible inside the panel.
+          }, null, { timeout: 1500 });
+          // Capture the feedback before reading/saving the download, which can outlast the toast timer.
           await page.screenshot({path:'artifacts/v62-mobile-export-feedback.png'});
           const exportFeedback = await page.evaluate(() => {
             const toast=document.getElementById('toast');
@@ -533,9 +530,11 @@ jobs:
           assert.equal(exportFeedback.inViewport,true,'Mobile export feedback must appear in the browser viewport');
           assert.equal(exportFeedback.inPanelViewport,true,'Mobile export feedback must not be clipped outside the panel viewport');
           assert.ok(exportFeedback.controlsTop!==null&&exportFeedback.toastBottom<=exportFeedback.controlsTop,'Mobile export feedback must not overlap the editing controls');
-          // The inline confirmation is temporary. Let it leave the panel before
-          // checking the next curve-control state, so the test measures the editor
-          // rather than the brief feedback message's reserved space.
+          const circleDownloadPath = await circleDownload.path();
+          assert.ok(circleDownloadPath,'Circular text export must produce a real downloadable file');
+          const circleBytes = await readFile(circleDownloadPath);
+          assert.ok(circleBytes.length>1000,'Circular text PNG must contain rendered artwork');
+          await circleDownload.saveAs('artifacts/story-studio-circle-export.png');
           await page.waitForFunction(() => !document.getElementById('toast')?.classList.contains('show'), null, { timeout: 2500 });
           console.log('CIRCULAR_PNG_DOWNLOAD_STATE:',JSON.stringify({filename:circleDownload.suggestedFilename(),bytes:circleBytes.length,signature:Array.from(circleBytes.subarray(0,8))}));
           const curvePanelState = await page.evaluate(() => {
