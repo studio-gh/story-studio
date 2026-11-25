@@ -66,6 +66,7 @@ jobs:
 
       - name: Synchronize simulated keyboard viewport with visualViewport
         run: |
+          mkdir -p artifacts
           node - <<'NODE'
           const { chromium } = require('playwright');
           (async () => {
@@ -104,6 +105,7 @@ jobs:
                 };
               },height);
               console.log('V80_KEYBOARD_CONTROLLER_STATE:',JSON.stringify(state));
+              await page.screenshot({path:`artifacts/v62-keyboard-viewport-${height}.png`,fullPage:false});
               if(state.stage.height<120) throw new Error('Keyboard preview became too small: '+JSON.stringify(state));
               if(state.wrap.bottom>height+1) throw new Error('Keyboard preview exceeds visible viewport: '+JSON.stringify(state));
               if(state.panel.top<state.wrap.bottom-1) throw new Error('Editor panel overlaps preview: '+JSON.stringify(state));
