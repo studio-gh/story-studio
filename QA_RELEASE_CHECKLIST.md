@@ -211,3 +211,23 @@ Chromium's simulated keyboard and safe-area CSS are not physical-device proof. P
 - Open and visually verify the official GitHub Pages URL after an approved production deployment. The official URL was not accessible from the current browser/network environment during this session; no live-page verification is claimed.
 
 Chromium's simulated keyboard and safe-area CSS are not physical-device proof. PR #6 remains Draft and unmerged. No merge, production deploy, or change to `main` or the official URL was performed.
+
+### Compact keyboard viewport regression (2026-11-25 — run #290)
+
+- The V80 keyboard layout now sizes the preview from the available visual viewport instead of forcing a 230 px minimum. The contextual panel's minimum height is capped by the space actually available, preventing its minimum from pushing it below the visible viewport.
+- The existing keyboard simulation now covers 390×460, 390×320, and 390×280 visible viewports. Assertions verify that the preview wrapper stays within the viewport, the editor panel starts below it, and the panel bottom stays within the visible height.
+- [GitHub Actions run #290](https://github.com/studio-gh/story-studio/actions/runs/45647070029) completed successfully. The keyboard geometry step and the full editor/photo/recovery/export regression both passed.
+- The downloaded artifact contains 24 files, including three new screenshots: `v62-keyboard-viewport-460.png`, `v62-keyboard-viewport-320.png`, and `v62-keyboard-viewport-280.png`. All three were opened and inspected.
+- At 460 px, the preview and text field remain comfortably visible. At 320 px, the preview is reduced but remains visible and the text field is visible. At 280 px, the preview is very compact and lower controls extend below the captured viewport; this is an edge-case stress capture, not proof of a comfortable physical-device experience.
+- These are Chromium viewport/visualViewport simulations. They do not open a physical keyboard, reproduce real device safe-area insets, or replace Android/iOS device testing.
+
+### Still required before release (rechecked 2026-11-25)
+
+- Physical Android verification: real keyboard opening/closing, device safe areas, touch gestures, and photo selection from the device gallery.
+- On a physical device, verify photo crop/resize/delete and cutout-edge cleanup.
+- iOS Safari compatibility check.
+- Broader preview-versus-export comparison for outlines, shadows, crop, rotation, and multi-layer artwork.
+- Broader accessibility, copy/share, high-resolution image, performance, and edge-case checks.
+- Open and visually verify the official GitHub Pages URL after an approved production deployment. The URL could not be opened from the current browser/network environment; no live-page verification is claimed.
+
+Chromium's simulated keyboard and safe-area CSS are not physical-device proof. PR #6 remains Draft and unmerged. No merge, production deploy, or change to `main` or the official URL was performed.
