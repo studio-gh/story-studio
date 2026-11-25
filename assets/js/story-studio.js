@@ -678,7 +678,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
      document.documentElement.style.removeProperty('--keyboard-preview-top');
      return {open:false,visibleHeight,layoutHeight,covered};
    }
-   const stageHeight=Math.max(230,Math.min(240,Math.floor(visibleHeight*.52)));
+   const stageHeight=Math.max(120,Math.min(240,Math.floor(visibleHeight-170)));
    const stageWidth=Math.round(stageHeight*9/16);
    const wrapHeight=stageHeight+10;
    apply(wrap,{
@@ -703,7 +703,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
    apply(panel,{
      position:'fixed',top:'calc('+viewportOffset+'px + '+wrapHeight+'px + '+safeTop+')',
      right:'0px',bottom:'auto',left:'0px',width:'100vw',
-     height:panelHeight,'min-height':'120px','max-height':panelHeight,
+     height:panelHeight,'min-height':'min(120px, '+panelHeight+')','max-height':panelHeight,
      margin:'0px',overflow:'auto','overscroll-behavior':'contain',
      'box-sizing':'border-box','z-index':'2500'
    });
