@@ -112,6 +112,42 @@ jobs:
               if(state.panel.bottom>height+1) throw new Error('Editor panel extends below visible viewport: '+JSON.stringify(state));
               if(state.panel.height<60) throw new Error('Editor panel is not scrollable/useful in compact viewport: '+JSON.stringify(state));
               if(!state.keyboardOpen) throw new Error('Keyboard state was not retained');
+              const panel = page.locator('#create .panel');
+              const done = page.locator('#finishTextEditing');
+              await page.waitForFunction(() => {
+                const button = document.getElementById('finishTextEditing');
+                return button && !button.hidden && getComputedStyle(button).display !== 'none';
+              });
+              await panel.evaluate(el => { el.scrollTop = el.scrollHeight; });
+              await page.waitForTimeout(80);
+              const doneState = await done.evaluate(el => {
+                const r = el.getBoundingClientRect();
+                const p = el.closest('.panel');
+                const pr = p.getBoundingClientRect();
+                return {
+                  hidden: el.hidden,
+                  display: getComputedStyle(el).display,
+                  button: { top: r.top, bottom: r.bottom, height: r.height },
+                  panel: { top: pr.top, bottom: pr.bottom },
+                  scrollTop: p.scrollTop,
+                  scrollHeight: p.scrollHeight,
+                  clientHeight: p.clientHeight
+                };
+              });
+              console.log('V80_KEYBOARD_DONE_ACTION_STATE:', JSON.stringify({ viewportHeight: height, ...doneState }));
+              if(doneState.hidden || doneState.display === 'none' || doneState.button.height < 24) {
+                throw new Error('Text completion action is not available while the keyboard is open: ' + JSON.stringify(doneState));
+              }
+              if(doneState.button.top < doneState.panel.top - 1 || doneState.button.bottom > Math.min(height, doneState.panel.bottom) + 1) {
+                throw new Error('Text completion action cannot be brought into the visible editor panel: ' + JSON.stringify(doneState));
+              }
+              await page.screenshot({path:`artifacts/v62-keyboard-done-action-${height}.png`,fullPage:false});
+              if(height === 280) {
+                await done.click();
+                await page.waitForFunction(() => document.activeElement?.id !== 'textValue' && !document.body.classList.contains('keyboard-open'));
+              } else {
+                await panel.evaluate(el => { el.scrollTop = 0; });
+              }
             }
             await browser.close();
           })().catch(error=>{console.error(error);process.exit(1)});
