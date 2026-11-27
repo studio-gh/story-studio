@@ -231,3 +231,28 @@ Chromium's simulated keyboard and safe-area CSS are not physical-device proof. P
 - Open and visually verify the official GitHub Pages URL after an approved production deployment. The URL could not be opened from the current browser/network environment; no live-page verification is claimed.
 
 Chromium's simulated keyboard and safe-area CSS are not physical-device proof. PR #6 remains Draft and unmerged. No merge, production deploy, or change to `main` or the official URL was performed.
+
+
+### Latest automated evidence (2026-11-27 — runs #293–#294)
+
+- [GitHub Actions run #293](https://github.com/studio-gh/story-studio/actions/runs/46025577522) passed after adding explicit checks that the text-edit completion action can be reached by scrolling the editor panel at 390×460, 390×320, and 390×280. At 280 px, clicking **Concluir edição** successfully removed the keyboard state. The artifact includes three `v62-keyboard-done-action-*.png` screenshots.
+- [GitHub Actions run #294](https://github.com/studio-gh/story-studio/actions/runs/46025886476) passed on commit `0ee515c995412ef02d75ebe0ebc607c0a70aaf8a`. It adds a desktop assertion for the character counter when a prefilled text layer is created. The counter now reads `19 / 120` for “Desktop layer check”; the final screenshot `v62-desktop-selected-layer.png` was opened and inspected.
+- Run #294 completed all substantive workflow steps: PT-BR initial language and EN toggle, editor translations in both languages, live text preview, mobile and desktop Chromium layouts, keyboard viewport checks, arc and 360-degree circular text geometry, shape creation/dragging, photo import, background removal and failure recovery, draft recovery, and PNG export.
+- The background-removal fixture was 667×834 px and produced 132,720 transparent pixels and 388,855 opaque pixels. A failed model-load simulation preserved the original photo, left sticker styling unchanged, and re-enabled the action.
+- Text/shape recovery after reload passed. Photo recovery retained the same layer ID and asset ID, the 62,743-character image data URL, and decoded 667×834 px dimensions.
+- The recovered photo was exported with text and a shape. The PNG is valid, 1,108×1,988 px and 650,705 bytes; comparing renders with and without the photo confirmed 354,312 pixels contributed by the photograph.
+- Artifact [#15210329922](https://github.com/studio-gh/story-studio/actions/runs/46025886476/artifacts/15210329922) contains 27 files. Key desktop/mobile, arc/circle, keyboard-action, photo-recovery, cutout, and PNG screenshots were opened and visually inspected.
+- The intentional `QA simulated model load failure` console message is part of the fallback test. The workflow's uncaught-error assertions passed; this was not an unhandled application failure.
+
+### Still required before release (rechecked 2026-11-27)
+
+- Physical Android verification: real keyboard opening/closing, device safe areas, touch gestures, and photo selection from the device gallery.
+- Physical-device photo crop/resize/delete and cutout-edge cleanup.
+- iOS Safari compatibility check.
+- Stress-test large/high-resolution photos and multiple images. Current recovery evidence uses one 667×834 px photo stored as a data URL; localStorage quota behavior is not yet proven for large projects.
+- Broader preview-versus-export comparison for outlines, shadows, crop, rotation, and multi-layer artwork.
+- Broader accessibility, copy/share, performance, and edge-case checks.
+- Open and visually verify the official GitHub Pages URL after an approved production deployment. External network access was unavailable in this run, so no live-page or physical-device verification is claimed.
+- The existing `/v62-preview/` Pages path is not a valid current-branch preview: its `index.html` matches the V62 branch, but its CSS and JS blobs differ. Do not use it as current V62 evidence. No new preview branch or deployment was created.
+
+Chromium keyboard/safe-area simulation is not physical-device proof. PR #6 remains Draft and unmerged. No merge, production deployment, change to `main`, or change to the official URL was performed.
