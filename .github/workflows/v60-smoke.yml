@@ -955,6 +955,7 @@ jobs:
           await desktop.screenshot({ path: 'artifacts/v62-desktop-empty-canvas.png' });
           await desktop.evaluate(() => window.addText('Desktop layer check'));
           await desktop.waitForFunction(() => document.querySelector('#stage .layer'));
+          assert.equal(await desktop.locator('#textCharCount').innerText(), '19 / 120', 'Character count must sync when a prefilled text layer is created');
           assert.notEqual(await desktop.locator('#selectionControls').evaluate(el => getComputedStyle(el.closest('.panel-section')).display), 'none', 'Selected-layer controls must appear after a layer is created');
           await desktop.screenshot({ path: 'artifacts/v62-desktop-selected-layer.png' });
 
